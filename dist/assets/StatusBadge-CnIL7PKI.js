@@ -1,0 +1,1 @@
+import{j as r}from"./motion-D5cmZcJt.js";import{a_ as e,a$ as S}from"./index-CQFuZRyv.js";function t({status:a}){return r.jsx("span",{className:`badge ${S[a]||"bg-gray-100 text-gray-600"}`,children:e[a]||a})}export{t as S};

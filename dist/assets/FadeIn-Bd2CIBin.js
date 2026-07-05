@@ -1,0 +1,1 @@
+import{j as n,m as o}from"./motion-D5cmZcJt.js";function r({children:i,delay:t=0,className:e=""}){return n.jsx(o.div,{className:e,initial:{opacity:0,y:24},whileInView:{opacity:1,y:0},viewport:{once:!0,margin:"-60px"},transition:{duration:.5,delay:t,ease:"easeOut"},children:i})}export{r as F};
