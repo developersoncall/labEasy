@@ -1,1 +1,0 @@
-import{s as a}from"./index-CQFuZRyv.js";const r=t=>({id:t.id,name:t.name,avatar:t.avatar_url,rating:Number(t.rating),city:t.city,service:t.service,text:t.quote}),s={async getAll(){const{data:t,error:e}=await a.from("testimonials").select("*").eq("is_active",!0).order("sort_order");if(e)throw e;return t.map(r)}};export{s as t};

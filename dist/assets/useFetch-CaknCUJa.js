@@ -1,1 +1,0 @@
-import{r as t}from"./react-C0thA7nF.js";function g(n,o=[]){const[u,c]=t.useState(null),[l,s]=t.useState(!0),[f,a]=t.useState(null),e=t.useCallback(async()=>{s(!0),a(null);try{const r=await n();c(r)}catch(r){a(r.message||"Something went wrong")}finally{s(!1)}},o);return t.useEffect(()=>{e()},[e]),{data:u,loading:l,error:f,refetch:e}}export{g as u};
