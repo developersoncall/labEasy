@@ -440,6 +440,30 @@
       </ul>
     </div>
 
+    <!-- Card 8: Standalone React Native Expo App -->
+    <div class="card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">📱</div>
+        <div>
+          <h2>Standalone React Native Expo App</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Created separate patient mobile app inside Medis-Mobile directory</p>
+        </div>
+        <span class="badge-status badge-added">Added</span>
+      </div>
+      
+      <p class="change-desc">
+        Initialized a standalone, independent Expo application sharing the same Supabase database backend without modifying the existing website.
+      </p>
+
+      <div class="list-title">Core Setup Highlights:</div>
+      <ul>
+        <li><span class="highlight-text">Separation:</span> Created the codebase at sibling path `Medis-Mobile` with independent configurations and packages.</li>
+        <li><span class="highlight-text">Navigation & Router:</span> Setup file-based routing (`src/app/`) containing segmented auth gates, custom TabLayout, search filters, scheduling calendars, and dashboard list tabs.</li>
+        <li><span class="highlight-text">Supabase Config:</span> Integrated the client using AsyncStorage to manage session states.</li>
+        <li><span class="highlight-text">Lato Typography:</span> Dynamic Google Web Fonts loading configuration for Lato regularity and bold weights.</li>
+      </ul>
+    </div>
+
     <div class="footer">
       <p>Medis Application Server &bull; Port 3000 &bull; Developer System Utility Log</p>
       <p style="margin-top: 0.5rem;"><a href="/">Return to Medis App Home</a></p>
