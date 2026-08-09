@@ -464,6 +464,53 @@
       </ul>
     </div>
 
+    <!-- Card 9: Expo SDK 54 Downgrade Alignment -->
+    <div class="card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">⚙️</div>
+        <div>
+          <h2>Expo SDK 54 Downgrade Alignment</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Downgraded mobile application versions for iOS Expo Go compatibility</p>
+        </div>
+        <span class="badge-status badge-added">Added</span>
+      </div>
+      
+      <p class="change-desc">
+        Re-aligned and configured all packages in the standalone mobile directory to run on Expo SDK 54, resolving peer conflicts and compiling cleanly.
+      </p>
+
+      <div class="list-title">Downgrade Alignments:</div>
+      <ul>
+        <li><span class="highlight-text">Expo SDK 54:</span> Down-leveled Expo framework dependencies using legacy-peer-deps rules inside `.npmrc`.</li>
+        <li><span class="highlight-text">Diagnostics Check:</span> Passed all 18 of 18 `npx expo-doctor` validation checks with no errors.</li>
+        <li><span class="highlight-text">Types and Theme Imports:</span> Swapped theme providers to `@react-navigation/native` to match SDK 54 router properties and fixed absolute spread definitions in `animated-icon.tsx`.</li>
+      </ul>
+    </div>
+
+    <!-- Card 10: Professional Grade Mobile App Improvements -->
+    <div class="card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">✨</div>
+        <div>
+          <h2>Professional Grade Mobile App Improvements</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Upgraded mobile user flows, context states, and search components</p>
+        </div>
+        <span class="badge-status badge-added">Added</span>
+      </div>
+      
+      <p class="change-desc">
+        Configured a global context state provider and built fully integrated patient screens mirroring the brand identity, logos, fonts, and user features of the existing Medis website.
+      </p>
+
+      <div class="list-title">Core Improvements:</div>
+      <ul>
+        <li><span class="highlight-text">Global Context State:</span> Created `AppContext.tsx` providing real-time synced `cartItems` counts and tab bar badge indicators across screens.</li>
+        <li><span class="highlight-text">Protected Redirect Gates:</span> Integrated `attemptedRoute` checking in the auth login workflow to preserve the patient's checkout state.</li>
+        <li><span class="highlight-text">Doctors and Bookings:</span> Created doctors list, specialties, profiles details (`src/app/doctor/[id].tsx`), and consult booking form (`src/app/doctor-book.tsx`).</li>
+        <li><span class="highlight-text">Wellness Library:</span> Built single blogs detail viewer (`src/app/blog/[slug].tsx`) connected to a live articles feed scroll on the home dashboard.</li>
+      </ul>
+    </div>
+
     <div class="footer">
       <p>Medis Application Server &bull; Port 3000 &bull; Developer System Utility Log</p>
       <p style="margin-top: 0.5rem;"><a href="/">Return to Medis App Home</a></p>

@@ -50,55 +50,10 @@ export default function Blogs() {
             subtitle="Evidence-based medical updates, nutrition tips, and wellness guides curated by the Medis clinical team."
           />
 
-          <div className="mx-auto max-w-xl">
-            <div className="relative rounded-2xl border border-gray-200 bg-white px-4 py-1.5 shadow-sm focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all flex items-center">
-              <FaSearch className="text-gray-400 mr-3" size={16} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search articles by title, description or tags..."
-                className="w-full bg-transparent text-sm text-gray-900 focus:outline-none placeholder-gray-400"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-xs text-gray-400 hover:text-gray-600 font-semibold px-2"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* ---------- category tabs ---------- */}
-      {categories.length > 2 && (
-        <section className="bg-white py-4 border-b border-gray-50">
-          <div className="container-custom flex flex-wrap justify-center gap-2">
-            {categories.map((cat) => {
-              const active = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setActiveCategory(cat)}
-                  aria-pressed={active}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors focus:outline-none ${
-                    active
-                      ? 'bg-primary-600 text-white shadow-sm'
-                      : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:text-primary-600'
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+     
 
       {/* ---------- blogs grid ---------- */}
       <section className="section-padding bg-gray-50">
@@ -144,12 +99,6 @@ export default function Blogs() {
 
                       {/* content */}
                       <div className="flex flex-1 flex-col p-6">
-                        <div className="flex items-center gap-2">
-                          <span className="badge bg-primary-50 text-primary-700 font-semibold text-[10px] uppercase tracking-wider">
-                            {blog.category}
-                          </span>
-                        </div>
-
                         <h3 className="mt-3 text-lg font-bold text-gray-900 hover:text-primary-600 transition-colors line-clamp-2">
                           <Link to={`/blogs/${blog.slug}`}>{blog.title}</Link>
                         </h3>
