@@ -19,8 +19,8 @@ const TicketModal = ({ ticket, onClose, onSave }) => {
   const message = ticket.messages?.[0]?.text || '';
 
   const replyByEmail = () => {
-    const subject = encodeURIComponent(`Re: ${ticket.subject || 'your message to LabEasy'}`);
-    const body = encodeURIComponent(`Hi ${ticket.user},\n\n\n\n— LabEasy Support`);
+    const subject = encodeURIComponent(`Re: ${ticket.subject || 'your message to Medis'}`);
+    const body = encodeURIComponent(`Hi ${ticket.user},\n\n\n\n— Medis Support`);
     window.location.href = `mailto:${ticket.email}?subject=${subject}&body=${body}`;
   };
 

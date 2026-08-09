@@ -11,7 +11,7 @@ import useAuth from '../../hooks/useAuth.js';
 import useDocumentTitle from '../../hooks/useDocumentTitle.js';
 import { useSettings } from '../../context/SettingsContext.jsx';
 
-const PREFS_KEY = 'labeasy_prefs';
+const PREFS_KEY = 'medis_prefs';
 
 const DEFAULT_PREFS = {
   emailReminders: true,

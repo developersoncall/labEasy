@@ -16,7 +16,7 @@ const Dashboard = () => {
   return (
     <div>
       <div className="page-header">
-        <div><div className="ph-title">Welcome back 👋</div><div className="ph-sub">Here's what's happening with LabEasy today.</div></div>
+        <div><div className="ph-title">Welcome back 👋</div><div className="ph-sub">Here's what's happening with Medis today.</div></div>
         <div className="ph-actions">
           <select className="filter-select"><option>Today</option><option>This Week</option><option>This Month</option></select>
         </div>

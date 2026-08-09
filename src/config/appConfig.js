@@ -10,7 +10,7 @@
 
 export const APP_CONFIG = {
   brand: {
-    name: 'LabEasy',
+    name: 'Medis',
     tagline: 'Trusted healthcare, simplified.',
   },
 
@@ -32,18 +32,18 @@ export const APP_CONFIG = {
   // Default contact details (overridable from Admin → Settings)
   contact: {
     phone: '+880 1711-123456',
-    email: 'care@labeasy.health',
+    email: 'care@medis.health',
     address: 'Level 4, Wellness Tower, Gulshan Avenue, Dhaka 1212, Bangladesh',
     hours: 'Sat - Thu: 8:00 AM - 10:00 PM',
   },
 
   // Default social links (overridable from Admin → Settings)
   social: {
-    facebook: { url: 'https://facebook.com/labeasy', enabled: true },
-    twitter: { url: 'https://x.com/labeasy', enabled: true },
-    instagram: { url: 'https://instagram.com/labeasy', enabled: true },
-    linkedin: { url: 'https://linkedin.com/company/labeasy', enabled: true },
-    youtube: { url: 'https://youtube.com/@labeasy', enabled: false },
+    facebook: { url: 'https://facebook.com/medis', enabled: true },
+    twitter: { url: 'https://x.com/medis', enabled: true },
+    instagram: { url: 'https://instagram.com/medis', enabled: true },
+    linkedin: { url: 'https://linkedin.com/company/medis', enabled: true },
+    youtube: { url: 'https://youtube.com/@medis', enabled: false },
   },
 
   // Serviceable cities (Bangladesh)

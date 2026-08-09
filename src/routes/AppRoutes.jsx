@@ -28,6 +28,8 @@ const Contact = lazy(() => import('../pages/public/Contact.jsx'));
 const FAQ = lazy(() => import('../pages/public/FAQ.jsx'));
 const PrivacyPolicy = lazy(() => import('../pages/public/PrivacyPolicy.jsx'));
 const Terms = lazy(() => import('../pages/public/Terms.jsx'));
+const Blogs = lazy(() => import('../pages/public/Blogs.jsx'));
+const BlogDetails = lazy(() => import('../pages/public/BlogDetails.jsx'));
 const NotFound = lazy(() => import('../pages/public/NotFound.jsx'));
 
 // Auth
@@ -77,6 +79,8 @@ export default function AppRoutes() {
             <Route path="/faq" element={<FAQ />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blogs/:slug" element={<BlogDetails />} />
 
             {/* booking flow (requires login) */}
             <Route

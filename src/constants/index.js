@@ -17,6 +17,7 @@ export const NAV_LINKS = [
   { label: 'Lab Tests', path: '/diagnostic-tests' },
   { label: 'Health Packages', path: '/health-packages' },
   { label: 'Video Consult', path: '/video-consultation' },
+  { label: 'Blogs', path: '/blogs' },
 ];
 
 export const CONSULTATION_TYPES = [
@@ -24,7 +25,7 @@ export const CONSULTATION_TYPES = [
   { id: 'video', label: 'Video Consultation', description: 'Consult online over a secure video call' },
 ];
 
-// Aligned with the LabEasy admin panel workflow
+// Aligned with the Medis admin panel workflow
 export const APPOINTMENT_STATUS = {
   PENDING: 'pending',
   CONFIRMED: 'confirmed',
@@ -64,7 +65,7 @@ export const STATUS_COLORS = {
 
 export const COLLECTION_TYPES = [
   { id: 'home', label: 'Home Sample Collection', description: 'A certified phlebotomist visits your home' },
-  { id: 'lab', label: 'Lab Visit', description: 'Walk in to the nearest LabEasy centre' },
+  { id: 'lab', label: 'Lab Visit', description: 'Walk in to the nearest Medis centre' },
 ];
 
 export const TIME_SLOT_GROUPS = {

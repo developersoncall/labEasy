@@ -124,7 +124,7 @@ export default function FAQ() {
                 <a
                   href={`tel:${contactPhone.replace(/\s/g, '')}`}
                   className="btn-ghost mt-3 w-full"
-                  aria-label={`Call LabEasy support on ${contactPhone}`}
+                  aria-label={`Call Medis support on ${contactPhone}`}
                 >
                   <IoCall aria-hidden="true" />
                   {contactPhone}

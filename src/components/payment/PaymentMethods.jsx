@@ -4,7 +4,7 @@ import { FaMoneyBillWave } from 'react-icons/fa';
 /**
  * Payment method — CASH ONLY.
  *
- * LabEasy currently accepts cash at the time of service (clinic visit, or
+ * Medis currently accepts cash at the time of service (clinic visit, or
  * to the phlebotomist after home sample collection). This is an
  * informational block; it reports 'cash' to the parent via onChange so the
  * existing booking flow keeps working without changes.

@@ -105,5 +105,19 @@ export const whatsappNumber = (phone) => {
 
 /** Set the document title consistently */
 export const setPageTitle = (title) => {
-  document.title = title ? `${title} | LabEasy` : 'LabEasy — Healthcare Appointments & Diagnostics';
+  document.title = title ? `${title} | Medis` : 'Medis — Healthcare Appointments & Diagnostics';
+};
+
+/** Format report turnaround time (e.g. 12 -> "12 hours", 48 -> "2 days", 80 -> "3 days") */
+export const formatReportHours = (hours) => {
+  const h = Number(hours);
+  if (!h || h <= 0) return '—';
+  if (h <= 24) {
+    return `${h} hour${h > 1 ? 's' : ''}`;
+  }
+  const days = h / 24;
+  const floor = Math.floor(days);
+  const decimal = days - floor;
+  const finalDays = decimal <= 0.4 ? floor : Math.ceil(days);
+  return `${finalDays} day${finalDays !== 1 ? 's' : ''}`;
 };

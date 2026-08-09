@@ -49,7 +49,9 @@ const ViewModal = ({ user, onClose, onEdit }) => {
             <Avatar name={user.name} size={52} />
             <div>
               <div className="modal-user-name">{user.name}</div>
-              <div className="modal-user-meta">{user.ref} · Joined {user.joined}</div>
+              <div className="modal-user-meta">
+                {user.ref} · Joined {user.joined} · <span className={`badge badge-${user.role === 'admin' ? 'red' : 'blue'}`} style={{ fontSize: 10, padding: '1px 6px' }}>{user.role}</span>
+              </div>
             </div>
             <Badge status={user.status} />
           </div>
@@ -199,10 +201,10 @@ const FormField = ({ label, field, type = 'text', options, form, errors, onChang
   </Field>
 );
 
-const UserFormModal = ({ user, onClose, onSave }) => {
+const UserFormModal = ({ user, isMainAdmin, onClose, onSave }) => {
   const isEdit = !!user;
   const [form, setForm] = useState(user ? { ...user } : {
-    name:'', phone:'', email:'', city:'', gender:'Female', blood:'O+', dob:'', address:'', status:'active', notes:'',
+    name:'', phone:'', email:'', city:'', gender:'Female', blood:'O+', dob:'', address:'', status:'active', role:'patient', notes:'',
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -254,6 +256,13 @@ const UserFormModal = ({ user, onClose, onSave }) => {
         <SectionTitle style={{ marginTop: 20 }}>Account Settings</SectionTitle>
         <div className="form-grid form-grid-2">
           <FormField label="Status" field="status" options={['active','blocked']}  form={form} errors={errors} onChange={set} />
+          {isMainAdmin ? (
+            <FormField label="Role" field="role" options={['patient','admin']}  form={form} errors={errors} onChange={set} />
+          ) : (
+            <Field label="Role">
+              <input className="form-input" value={form.role || 'patient'} disabled />
+            </Field>
+          )}
         </div>
         <SectionTitle style={{ marginTop: 20 }}>Admin Notes</SectionTitle>
         <Field>
@@ -360,7 +369,8 @@ const BlockModal = ({ user, onClose, onConfirm }) => {
 /* ════════════════════════════════════════
    MAIN PAGE
 ════════════════════════════════════════ */
-const Users = () => {
+const Users = ({ adminEmail }) => {
+  const isMainAdmin = adminEmail?.toLowerCase() === 'medis.com.bd@gmail.com';
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -449,18 +459,16 @@ const Users = () => {
     ].join('\n');
     const a = document.createElement('a');
     a.href = 'data:text/csv,' + encodeURIComponent(csv);
-    a.download = 'labeasy-users.csv';
+    a.download = 'medis-users.csv';
     a.click();
     toast_('Exported CSV');
   };
 
-  const thisMonth = new Date().toLocaleDateString('en-US', { month: 'short' });
-  const thisYear = String(new Date().getFullYear());
   const stats = {
     total: users.length,
     active: users.filter(u => u.status === 'active').length,
     blocked: users.filter(u => u.status === 'blocked').length,
-    newThisMonth: users.filter(u => u.joined?.includes(thisMonth) && u.joined?.includes(thisYear)).length,
+    admins: users.filter(u => u.role === 'admin').length,
   };
 
   return (
@@ -479,10 +487,10 @@ const Users = () => {
       {/* Stats */}
       <div className="stat-row">
         {[
-          { i: '👥', c: '#1a6fc4', l: 'Total Patients', n: stats.total },
-          { i: '✅', c: '#0d9488', l: 'Active', n: stats.active },
-          { i: '🚫', c: '#dc2626', l: 'Blocked', n: stats.blocked },
-          { i: '🆕', c: '#7c3aed', l: 'New This Month', n: stats.newThisMonth },
+          { i: '👥', c: '#1a6fc4', l: 'Total Users', n: stats.total },
+          { i: '✅', c: '#0d9488', l: 'Active Accounts', n: stats.active },
+          { i: '🚫', c: '#dc2626', l: 'Blocked Accounts', n: stats.blocked },
+          { i: '🛡️', c: '#7c3aed', l: 'Administrators', n: stats.admins },
         ].map((s, i) => (
           <div className="stat-card" key={i}>
             <div className="sc-top"><div className="sc-icon" style={{ background: s.c + '20' }}>{s.i}</div></div>
@@ -546,7 +554,12 @@ const Users = () => {
                         <Avatar name={u.name} size={34} />
                         <div>
                           <div className="user-name">{u.name}</div>
-                          <div className="user-id">{u.ref}</div>
+                          <div className="user-id" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {u.ref}
+                            <span className={`badge badge-${u.role === 'admin' ? 'red' : 'blue'}`} style={{ fontSize: 9, padding: '1px 5px' }}>
+                              {u.role}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -559,11 +572,15 @@ const Users = () => {
                     <td>
                       <div className="actions">
                         <button className="btn btn-secondary btn-sm btn-icon" title="View" onClick={() => setView(u)}>👁</button>
-                        <button className="btn btn-secondary btn-sm btn-icon" title="Edit" onClick={() => setEdit(u)}>✏️</button>
-                        <button className={`btn btn-sm ${u.status === 'active' ? 'btn-block' : 'btn-primary'}`} title={u.status === 'active' ? 'Block' : 'Unblock'} onClick={() => setBlock(u)}>
-                          {u.status === 'active' ? '🚫' : '✅'}
-                        </button>
-                        <button className="btn btn-secondary btn-sm btn-icon del-btn" title="Delete" onClick={() => setDel(u)}>🗑</button>
+                        {(isMainAdmin || u.role !== 'admin') && (
+                          <>
+                            <button className="btn btn-secondary btn-sm btn-icon" title="Edit" onClick={() => setEdit(u)}>✏️</button>
+                            <button className={`btn btn-sm ${u.status === 'active' ? 'btn-block' : 'btn-primary'}`} title={u.status === 'active' ? 'Block' : 'Unblock'} onClick={() => setBlock(u)}>
+                              {u.status === 'active' ? '🚫' : '✅'}
+                            </button>
+                            <button className="btn btn-secondary btn-sm btn-icon del-btn" title="Delete" onClick={() => setDel(u)}>🗑</button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -590,7 +607,7 @@ const Users = () => {
 
       {/* Modals */}
       {view && <ViewModal user={view} onClose={() => setView(null)} onEdit={u => { setView(null); setEdit(u); }} />}
-      {edit && <UserFormModal user={edit} onClose={() => setEdit(null)} onSave={handleSave} />}
+      {edit && <UserFormModal user={edit} isMainAdmin={isMainAdmin} onClose={() => setEdit(null)} onSave={handleSave} />}
       {del && <DeleteModal user={del} onClose={() => setDel(null)} onConfirm={handleDelete} />}
       {block && <BlockModal user={block} onClose={() => setBlock(null)} onConfirm={handleBlock} />}
 

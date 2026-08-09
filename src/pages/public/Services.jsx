@@ -124,12 +124,12 @@ export default function Services() {
         </div>
       </section>
 
-      {/* How LabEasy works */}
+      {/* How Medis works */}
       <section className="section-padding">
         <div className="container-custom">
           <SectionHeading
             eyebrow="How it works"
-            title="How LabEasy works"
+            title="How Medis works"
             subtitle="Four simple steps between you and better health — most bookings take less than two minutes."
           />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

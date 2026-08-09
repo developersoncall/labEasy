@@ -22,6 +22,7 @@ import Payments      from './pages/Payments/index';
 import Support       from './pages/Support/index';
 import Analytics     from './pages/Analytics/index';
 import Settings      from './pages/Settings/index';
+import Blogs         from './pages/Blogs/index';
 
 /**
  * Admin panel shell. Ported from the standalone Lab-Admin app: keeps its
@@ -51,12 +52,13 @@ const AdminApp = () => {
   const renderPage = () => {
     switch (page) {
       case 'dashboard':      return <Dashboard />;
-      case 'users':          return <Users />;
+      case 'users':          return <Users adminEmail={user?.email || ''} />;
       case 'doctors':        return <Doctors />;
       // Distinct keys force a remount so the Tests page opens on the right tab.
       case 'tests':          return <Tests key="tests-all" initialTab="tests" />;
       case 'categories':     return <Tests key="tests-cats" initialTab="categories" />;
       case 'packages':       return <Packages />;
+      case 'blogs':          return <Blogs />;
       case 'bookings':       return <Bookings onChange={refreshCounts} />;
       case 'appointments':   return <Appointments onChange={refreshCounts} />;
       case 'reports':        return <Reports onChange={refreshCounts} />;

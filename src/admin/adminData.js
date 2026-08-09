@@ -46,19 +46,18 @@ const userFromRow = (r) => ({
   city: r.city || '', tests: 0, status: r.status || 'active', joined: fmtDate(r.created_at),
   dob: r.date_of_birth || '', gender: r.gender || '', blood: r.blood_group || '',
   address: r.address || '', notes: '', family: [],
+  role: r.role || 'patient',
 });
 export const usersData = {
-  // Manage Users lists patients only — admins are managed separately, so
-  // exclude any profile whose role is 'admin'.
-  load: async () => (await selectAll('user_profiles', { order: 'created_at' }))
-    .filter((r) => r.role !== 'admin')
-    .map(userFromRow),
+  // Manage Users lists all profiles.
+  load: async () => (await selectAll('user_profiles', { order: 'created_at' })).map(userFromRow),
   // Users self-register — admin can edit existing profiles but not create auth accounts.
   save: async (u) => {
     if (!isUuid(u.id)) throw new Error('Users register themselves. You can edit or manage existing users only.');
     const patch = {
       full_name: u.name, phone: u.phone, city: u.city, gender: u.gender || null,
       blood_group: u.blood || null, date_of_birth: u.dob || null, address: u.address, status: u.status,
+      role: u.role || 'patient',
     };
     return userFromRow(await updateRow('user_profiles', u.id, patch, 'user_id'));
   },
@@ -163,16 +162,38 @@ export const categoriesData = {
 
 /* ══════════════ PACKAGES (health_packages) ══════════════ */
 const pkgFromRow = (r) => ({
-  id: r.id, name: r.name, tests: r.tests_count || 0, testList: [],
-  price: r.price, originalPrice: r.mrp, active: r.is_active !== false, bookings: 0,
+  id: r.id,
+  name: r.name,
+  tests: r.tests_count || 0,
+  testList: [],
+  price: r.price,
+  originalPrice: r.mrp,
+  active: r.is_active !== false,
+  bookings: 0,
   description: r.description || '',
+  category: r.category || 'Full Body',
+  idealFor: r.ideal_for || '',
+  fastingRequired: !!r.fasting_required,
+  reportHours: r.report_hours || 24,
+  popular: !!r.is_popular,
+  homeCollection: r.home_collection_available !== false,
+  includedTests: r.included_tests || [],
 });
 const pkgToRow = (p) => ({
-  name: p.name, price: Number(p.price) || 0, mrp: Number(p.originalPrice || p.price) || 0,
-  tests_count: Number(p.tests) || 0, description: p.description || '', is_active: !!p.active,
-  slug: slugify(p.name), included_tests: p.includedTests || [], category: p.category || 'Full Body',
-  ideal_for: p.idealFor || '', home_collection_available: true, fasting_required: false,
-  report_hours: 24, is_popular: !!p.popular,
+  name: p.name,
+  price: Number(p.price) || 0,
+  mrp: Number(p.originalPrice || p.price) || 0,
+  tests_count: Number(p.tests) || 0,
+  description: p.description || '',
+  is_active: !!p.active,
+  slug: slugify(p.name),
+  included_tests: p.includedTests || [],
+  category: p.category || 'Full Body',
+  ideal_for: p.idealFor || '',
+  home_collection_available: p.homeCollection !== false,
+  fasting_required: !!p.fastingRequired,
+  report_hours: Number(p.reportHours) || 24,
+  is_popular: !!p.popular,
 });
 export const packagesData = {
   load: async () => (await selectAll('health_packages', { order: 'price', ascending: true })).map(pkgFromRow),
@@ -214,7 +235,7 @@ const BOOKING_MSG = {
   sample_collected: 'Your sample has been collected and sent to the lab.',
   processing: 'Your sample is being processed at the lab.',
   report_ready: 'Good news — your report is ready to view in your dashboard.',
-  completed: 'Your booking is complete. Thank you for choosing LabEasy!',
+  completed: 'Your booking is complete. Thank you for choosing Medis!',
   cancelled: 'Your lab booking has been cancelled. Any payment will be refunded in 3-5 working days.',
 };
 async function notifyUser(userId, title, message, type = 'info') {
@@ -244,7 +265,7 @@ export const bookingsData = {
 /* ══════════════ APPOINTMENTS (appointments) ══════════════ */
 const APPT_MSG = {
   confirmed: 'Your doctor appointment is confirmed. See you soon!',
-  completed: 'Your consultation is complete. Thank you for choosing LabEasy!',
+  completed: 'Your consultation is complete. Thank you for choosing Medis!',
   cancelled: 'Your appointment has been cancelled. Any payment will be refunded in 3-5 working days.',
 };
 const apptFromRow = (a) => ({
@@ -333,7 +354,7 @@ const reportFromRow = (r) => ({
   bookingId: r.booked_tests?.booking_ref || (r.booking_id ? `#${String(r.booking_id).slice(0, 6)}` : '—'),
   bookingRawId: r.booking_id || null,   // raw UUID, used to match a booking to its report
   patient: r.notes || '—', test: r.title || 'Report',
-  date: fmtDate(r.created_at), uploadedBy: r.signed_by || 'LabEasy',
+  date: fmtDate(r.created_at), uploadedBy: r.signed_by || 'Medis',
   status: r.is_verified ? 'verified' : (r.status || 'pending'), file: r.report_url || '',
 });
 // Map the screen's status labels onto the DB's report_status enum.
@@ -623,4 +644,54 @@ export const dashboardData = {
       chartRevenue,
     };
   },
+};
+
+/* ══════════════ BLOGS (blogs) ══════════════ */
+const blogFromRow = (r) => ({
+  id: r.id,
+  title: r.title || '',
+  slug: r.slug || '',
+  category: r.category || 'General',
+  authorName: r.author_name || 'Admin',
+  authorRole: r.author_role || 'Medis Team',
+  coverImageUrl: r.cover_image_url || '',
+  publishedAt: r.published_at || '',
+  readMinutes: r.read_minutes || 5,
+  tags: r.tags || [],
+  excerpt: r.excerpt || '',
+  content: r.content || '',
+  isPublished: !!r.is_published,
+});
+
+const blogToRow = (b) => ({
+  title: b.title,
+  slug: b.slug || slugify(b.title),
+  category: b.category || 'General',
+  author_name: b.authorName || 'Admin',
+  author_role: b.authorRole || 'Medis Team',
+  cover_image_url: b.coverImageUrl || '',
+  published_at: b.publishedAt || new Date().toISOString().split('T')[0],
+  read_minutes: Number(b.readMinutes) || 5,
+  tags: Array.isArray(b.tags) ? b.tags : (typeof b.tags === 'string' ? b.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
+  excerpt: b.excerpt || '',
+  content: b.content || '',
+  is_published: !!b.isPublished,
+});
+
+export const blogsData = {
+  load: async () => (await selectAll('blogs', { order: 'published_at', ascending: false })).map(blogFromRow),
+  save: async (b) => isUuid(b.id)
+    ? blogFromRow(await updateRow('blogs', b.id, blogToRow(b)))
+    : blogFromRow(await insertRow('blogs', blogToRow(b))),
+  remove: (id) => deleteRow('blogs', id),
+  uploadCover: async (file) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const safeName = file.name.replace(/[^\w.\-]+/g, '_');
+    const path = `${user.id}/blogs_${Date.now()}_${safeName}`;
+    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    if (error) throw error;
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+    return data.publicUrl;
+  }
 };

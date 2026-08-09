@@ -8,10 +8,9 @@ import { SkeletonGrid } from '../common/Skeleton.jsx';
 import EmptyState from '../common/EmptyState.jsx';
 import PackageCard from '../diagnostics/PackageCard.jsx';
 
-/** Curated health packages; booking adds the package to the cart and opens checkout. */
 export default function PackagesSection() {
   const navigate = useNavigate();
-  const { data: packages, loading, error } = useFetch(() => diagnosticService.getPopularPackages(), []);
+  const { data: packages, loading, error } = useFetch(() => diagnosticService.getAllPackages(), []);
   const { toggleItem, inCart } = useCart();
 
   const handleBook = (pkg) => {

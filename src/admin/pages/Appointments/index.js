@@ -156,7 +156,7 @@ const Appointments = ({ onChange }) => {
   const handleExport = () => {
     const headers = ['Ref', 'Patient', 'Doctor', 'Specialty', 'Date', 'Time', 'Type', 'Fee', 'Status'];
     const rows = filtered.map(a => [a.ref, a.user, a.doctor, a.specialty, a.date, a.time, a.type, a.fee, a.status]);
-    exportCSV('labeasy-appointments.csv', headers, rows);
+    exportCSV('medis-appointments.csv', headers, rows);
     toast_('Exported CSV');
   };
 

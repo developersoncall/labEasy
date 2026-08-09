@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { FaVial, FaHome, FaClock } from 'react-icons/fa';
-import { formatCurrency, discountPercent } from '../../utils/helpers.js';
+import { formatCurrency, discountPercent, formatReportHours } from '../../utils/helpers.js';
 
 /**
  * Diagnostic test card with an "Add" action used on listing pages
@@ -23,7 +23,7 @@ export default function TestCard({ test, inCart, onAdd }) {
 
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
         <span className="inline-flex items-center gap-1"><FaVial aria-hidden="true" className="text-primary-400" /> {test.sampleType}</span>
-        <span className="inline-flex items-center gap-1"><FaClock aria-hidden="true" className="text-primary-400" /> Report in {test.reportHours}h</span>
+        <span className="inline-flex items-center gap-1"><FaClock aria-hidden="true" className="text-primary-400" /> Report in {formatReportHours(test.reportHours)}</span>
         {test.homeCollection && (
           <span className="inline-flex items-center gap-1"><FaHome aria-hidden="true" className="text-primary-400" /> Home collection</span>
         )}

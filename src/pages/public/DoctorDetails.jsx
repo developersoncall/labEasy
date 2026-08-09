@@ -106,7 +106,7 @@ export default function DoctorDetails() {
       await reviewService.add({
         userId: user.id,
         doctorId: doctor.id,
-        reviewerName: user.user_metadata?.full_name || 'LabEasy Patient',
+        reviewerName: user.user_metadata?.full_name || 'Medis Patient',
         rating: Number(values.rating),
         comment: values.comment.trim(),
       });
@@ -148,7 +148,7 @@ export default function DoctorDetails() {
             <EmptyState
               icon={FaUserMd}
               title="Doctor not found"
-              message="The profile you are looking for may have been moved or is no longer available on LabEasy."
+              message="The profile you are looking for may have been moved or is no longer available on Medis."
               actionLabel="Browse all doctors"
               actionTo="/doctors"
             />

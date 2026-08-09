@@ -244,7 +244,7 @@ const Bookings = ({ onChange }) => {
   const handleExport = () => {
     const headers = ['Booking ID','Patient','Test/Package','Type','Date','Slot','Amount','Status','Phlebotomist'];
     const rows = filtered.map(b => [b.ref, b.user, b.test, b.type, b.date, b.slot, b.amount, b.status, b.phlebotomist]);
-    exportCSV('labeasy-bookings.csv', headers, rows);
+    exportCSV('medis-bookings.csv', headers, rows);
     toast_('Exported CSV');
   };
 

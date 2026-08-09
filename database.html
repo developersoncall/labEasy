@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LabEasy — Supabase Database Documentation</title>
+<title>Medis — Supabase Database Documentation</title>
 <style>
   :root{
     --bg:#0b1220; --panel:#101a2e; --panel2:#0a0f1d; --border:#1e2a44; --border2:#2a3a5e;
@@ -148,8 +148,8 @@
 
 <!-- ============================ 1. OVERVIEW ============================ -->
 <section id="overview">
-  <h1>LabEasy Database Guide</h1>
-  <p class="lead">Everything you need to provision the shared Supabase project that powers both the <b>LabEasy patient website</b> (this repository) and the <b>LabEasy Diagnostics admin panel</b> (labadmin-b1090.web.app) — schema, security policies, storage, auth and realistic seed data, in one idempotent SQL script.</p>
+  <h1>Medis Database Guide</h1>
+  <p class="lead">Everything you need to provision the shared Supabase project that powers both the <b>Medis patient website</b> (this repository) and the <b>Medis Diagnostics admin panel</b> (labadmin-b1090.web.app) — schema, security policies, storage, auth and realistic seed data, in one idempotent SQL script.</p>
 
   <h2 id="overview-h"><span class="num">01</span>Overview &amp; Architecture<a class="anchor" href="#overview">#</a></h2>
   <p>One Supabase project backs two separate frontends. They talk to the <em>same tables</em> but with very different privileges:</p>
@@ -164,7 +164,7 @@
     </div>
     <div class="card">
       <h4>🧑‍💼 Admin Panel (labadmin-b1090.web.app)</h4>
-      <p>“LabEasy Diagnostics” back office. Connects with the <b>service-role key</b>, which <b>bypasses RLS entirely</b> — it must never ship in browser-exposed code without a trusted backend.</p>
+      <p>“Medis Diagnostics” back office. Connects with the <b>service-role key</b>, which <b>bypasses RLS entirely</b> — it must never ship in browser-exposed code without a trusted backend.</p>
       <p>Modules mapped to tables: Dashboard KPIs &amp; Bookings → <code>booked_tests</code>; Home Collections / Lab Visits → <code>booked_tests.collection_type</code>; Reports → <code>medical_reports</code>; Doctors → <code>doctors</code>; Users → <code>user_profiles</code>; Payments &amp; Billing → <code>payments</code>; Categories → <code>test_categories</code>; Support Tickets → <code>contact_messages</code>; Banners/CMS &amp; Settings → <code>settings</code>.</p>
     </div>
   </div>
@@ -209,7 +209,7 @@ Patient site (anon key, RLS ON)          Admin panel (service-role key, RLS bypa
 
   <div class="step"><div class="n">1</div><div class="body">
     <h4>Create a Supabase project</h4>
-    <p>Go to <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">supabase.com/dashboard</a> → <b>New project</b>. Pick your organization, name it (e.g. <code>labeasy</code>), set a strong database password and choose the region closest to your users (e.g. <code>ap-south-1</code> Mumbai for India). Wait ~2 minutes for provisioning.</p>
+    <p>Go to <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">supabase.com/dashboard</a> → <b>New project</b>. Pick your organization, name it (e.g. <code>medis</code>), set a strong database password and choose the region closest to your users (e.g. <code>ap-south-1</code> Mumbai for India). Wait ~2 minutes for provisioning.</p>
     <div class="shot"><div class="cap">📷 Screenshot cue</div>The dashboard shows a green “Project Status: Active” badge in the top bar once provisioning finishes. Until then, the SQL Editor is unavailable.</div>
   </div></div>
 
@@ -258,11 +258,11 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
 
   <div class="callout info"><span class="ic">🧾</span><div><b>Blog content note:</b> to keep this script a sane size, each blog’s <code>content</code> is seeded with its first two paragraphs (the full <code>excerpt</code> is included verbatim). The frontend renders whatever is in <code>content</code>, so you can extend any post later from the Table Editor. This is also flagged with a comment inside the script.</div></div>
 
-  <div class="codeblock tall"><div class="cb-head"><span class="cb-title"><span class="dot"></span>labeasy_complete.sql — run me in the Supabase SQL editor</span><button class="copybtn" onclick="copyCode(this)">Copy</button></div>
+  <div class="codeblock tall"><div class="cb-head"><span class="cb-title"><span class="dot"></span>medis_complete.sql — run me in the Supabase SQL editor</span><button class="copybtn" onclick="copyCode(this)">Copy</button></div>
 <pre>
 -- =============================================================================
---  LabEasy — Complete Supabase Schema, Security &amp; Seed Script  (v1.0)
---  Shared by: LabEasy patient website + LabEasy Diagnostics admin panel
+--  Medis — Complete Supabase Schema, Security &amp; Seed Script  (v1.0)
+--  Shared by: Medis patient website + Medis Diagnostics admin panel
 --  Safe to run top-to-bottom in ONE pass in the Supabase SQL Editor.
 --  Idempotent: IF NOT EXISTS / OR REPLACE / ON CONFLICT DO NOTHING throughout.
 -- =============================================================================
@@ -537,7 +537,7 @@ create table if not exists public.reviews (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid references auth.users(id) on delete cascade,
   doctor_id     uuid not null references public.doctors(id) on delete cascade,
-  reviewer_name text not null default 'LabEasy Patient',
+  reviewer_name text not null default 'Medis Patient',
   rating        int not null check (rating between 1 and 5),
   comment       text default '',
   is_approved   boolean not null default true,
@@ -579,7 +579,7 @@ create table if not exists public.blogs (
   title           text not null,
   slug            text not null unique,
   category        text default '',
-  author_name     text default 'LabEasy Team',
+  author_name     text default 'Medis Team',
   author_role     text default '',
   cover_image_url text default '',
   published_at    date default current_date,
@@ -897,7 +897,7 @@ on conflict (name) do nothing;
 
 -- 7.2 settings (admin Settings + Banners/CMS defaults)
 insert into public.settings (key, value) values
-  ('support_email',             '"care@labeasy.health"'::jsonb),
+  ('support_email',             '"care@medis.health"'::jsonb),
   ('support_phone',             '"+91 98765 43210"'::jsonb),
   ('home_collection_radius_km', '25'::jsonb),
   ('home_collection_fee',       '150'::jsonb),
@@ -929,7 +929,7 @@ insert into public.doctors
    languages, consultation_fee, video_fee, rating, review_count, gender, city,
    clinic_name, about, available_days, next_available, is_verified, is_featured)
 values
-  ('Dr. Ananya Iyer', 'dr-ananya-iyer', 'https://ui-avatars.com/api/?name=Ananya%20Iyer&amp;background=2563eb&amp;color=fff&amp;size=256&amp;bold=true', (select id from public.specialties where slug = 'general-medicine'), 'MBBS, MD (Internal Medicine)', 12, array['English','Hindi','Tamil'], 600, 450, 4.8, 214, 'female', 'Bengaluru', 'LabEasy Clinic, Indiranagar', 'Dr. Ananya specialises in preventive medicine and management of chronic conditions like diabetes and hypertension. Known for her patient-first, unhurried consultations.', array['Mon','Tue','Wed','Thu','Fri'], 'Today', true, true),
+  ('Dr. Ananya Iyer', 'dr-ananya-iyer', 'https://ui-avatars.com/api/?name=Ananya%20Iyer&amp;background=2563eb&amp;color=fff&amp;size=256&amp;bold=true', (select id from public.specialties where slug = 'general-medicine'), 'MBBS, MD (Internal Medicine)', 12, array['English','Hindi','Tamil'], 600, 450, 4.8, 214, 'female', 'Bengaluru', 'Medis Clinic, Indiranagar', 'Dr. Ananya specialises in preventive medicine and management of chronic conditions like diabetes and hypertension. Known for her patient-first, unhurried consultations.', array['Mon','Tue','Wed','Thu','Fri'], 'Today', true, true),
   ('Dr. Rohan Mehta', 'dr-rohan-mehta', 'https://ui-avatars.com/api/?name=Rohan%20Mehta&amp;background=059669&amp;color=fff&amp;size=256&amp;bold=true', (select id from public.specialties where slug = 'cardiology'), 'MBBS, MD, DM (Cardiology)', 18, array['English','Hindi','Marathi'], 1200, 900, 4.9, 342, 'male', 'Mumbai', 'HeartCare Centre, Bandra West', 'Interventional cardiologist with 18 years of experience in angioplasty, cardiac rehab and preventive cardiology programs.', array['Mon','Wed','Fri','Sat'], 'Tomorrow', true, true),
   ('Dr. Sneha Kulkarni', 'dr-sneha-kulkarni', 'https://ui-avatars.com/api/?name=Sneha%20Kulkarni&amp;background=7c3aed&amp;color=fff&amp;size=256&amp;bold=true', (select id from public.specialties where slug = 'dermatology'), 'MBBS, MD (Dermatology)', 9, array['English','Hindi','Marathi'], 800, 600, 4.7, 189, 'female', 'Pune', 'SkinFirst Clinic, Koregaon Park', 'Dermatologist focused on acne, pigmentation and hair restoration with a strong emphasis on evidence-based skincare.', array['Tue','Wed','Thu','Sat'], 'Today', true, true),
   ('Dr. Arjun Nair', 'dr-arjun-nair', 'https://ui-avatars.com/api/?name=Arjun%20Nair&amp;background=0891b2&amp;color=fff&amp;size=256&amp;bold=true', (select id from public.specialties where slug = 'pediatrics'), 'MBBS, DCH, DNB (Pediatrics)', 14, array['English','Hindi','Malayalam'], 700, 500, 4.9, 401, 'male', 'Bengaluru', 'Little Steps Children Clinic, HSR Layout', 'Pediatrician loved by kids and parents alike. Special interest in newborn care, nutrition and childhood asthma.', array['Mon','Tue','Thu','Fri','Sat'], 'Today', true, true),
@@ -1004,7 +1004,7 @@ values
   ('Widal Test (Typhoid)', 'widal-test', 'LE-WID37', 'Infections', (select id from public.test_categories where name = 'Infections'), 249, 350, 'Blood', false, 8, true, false, 'Screens for typhoid fever antibodies.'),
   ('COVID-19 RT-PCR', 'covid-rtpcr', 'LE-COV38', 'Infections', (select id from public.test_categories where name = 'Infections'), 499, 700, 'Swab', false, 12, true, false, 'Gold-standard PCR detection of SARS-CoV-2.'),
   ('HIV I &amp; II Screening', 'hiv-screening', 'LE-HIV39', 'Infections', (select id from public.test_categories where name = 'Infections'), 449, 650, 'Blood', false, 12, true, false, 'Confidential HIV antibody screening.'),
-  ('Chest X-Ray (PA View)', 'chest-xray', 'LE-XR40', 'Imaging', (select id from public.test_categories where name = 'Imaging'), 399, 600, 'None', false, 6, false, false, 'Digital chest X-ray at LabEasy partner imaging centres.'),
+  ('Chest X-Ray (PA View)', 'chest-xray', 'LE-XR40', 'Imaging', (select id from public.test_categories where name = 'Imaging'), 399, 600, 'None', false, 6, false, false, 'Digital chest X-ray at Medis partner imaging centres.'),
   ('Ultrasound Abdomen (Whole)', 'usg-abdomen', 'LE-USG41', 'Imaging', (select id from public.test_categories where name = 'Imaging'), 1199, 1600, 'None', true, 6, false, false, 'Whole abdomen ultrasound scan by certified radiologists.'),
   ('MRI Brain (Plain)', 'mri-brain', 'LE-MRI42', 'Imaging', (select id from public.test_categories where name = 'Imaging'), 4999, 7000, 'None', false, 24, false, false, 'Plain MRI of the brain at partner imaging centres.'),
   ('CT Scan Chest (Plain)', 'ct-chest', 'LE-CT43', 'Imaging', (select id from public.test_categories where name = 'Imaging'), 3499, 5000, 'None', false, 24, false, false, 'Plain CT chest for detailed lung evaluation.'),
@@ -1022,8 +1022,8 @@ insert into public.health_packages
   (name, slug, price, mrp, tests_count, category, is_popular, fasting_required,
    report_hours, home_collection_available, ideal_for, description, included_tests)
 values
-  ('LabEasy Basic Health Check', 'basic-health-check', 999, 1800, 35, 'Full Body', true, true, 24, true, 'Adults 18-40 · Annual screening', 'An affordable annual screening covering the essentials — blood counts, sugar, lipids, liver, kidney and urine.', '["Complete Blood Count (CBC)","Fasting Blood Sugar","Lipid Profile","Liver Function Test","Kidney Function Test","Urine Routine &amp; Microscopy","ESR"]'::jsonb),
-  ('LabEasy Advanced Full Body Checkup', 'advanced-full-body', 2499, 4500, 68, 'Full Body', true, true, 24, true, 'Adults 30+ · Comprehensive review', 'A comprehensive head-to-toe profile including thyroid, vitamins, iron studies and HbA1c on top of the basics.', '["Complete Blood Count (CBC)","HbA1c","Lipid Profile","Liver Function Test","Kidney Function Test","Thyroid Profile (T3, T4, TSH)","Vitamin D (25-OH)","Vitamin B12","Iron Studies","Urine Routine &amp; Microscopy"]'::jsonb),
+  ('Medis Basic Health Check', 'basic-health-check', 999, 1800, 35, 'Full Body', true, true, 24, true, 'Adults 18-40 · Annual screening', 'An affordable annual screening covering the essentials — blood counts, sugar, lipids, liver, kidney and urine.', '["Complete Blood Count (CBC)","Fasting Blood Sugar","Lipid Profile","Liver Function Test","Kidney Function Test","Urine Routine &amp; Microscopy","ESR"]'::jsonb),
+  ('Medis Advanced Full Body Checkup', 'advanced-full-body', 2499, 4500, 68, 'Full Body', true, true, 24, true, 'Adults 30+ · Comprehensive review', 'A comprehensive head-to-toe profile including thyroid, vitamins, iron studies and HbA1c on top of the basics.', '["Complete Blood Count (CBC)","HbA1c","Lipid Profile","Liver Function Test","Kidney Function Test","Thyroid Profile (T3, T4, TSH)","Vitamin D (25-OH)","Vitamin B12","Iron Studies","Urine Routine &amp; Microscopy"]'::jsonb),
   ('Diabetes Care Package', 'diabetes-care', 1299, 2200, 22, 'Diabetes', true, true, 24, true, 'Diabetics &amp; pre-diabetics · Quarterly', 'Everything a diabetic needs each quarter — sugars, HbA1c, kidney screen and microalbumin.', '["Fasting Blood Sugar","Postprandial Blood Sugar","HbA1c","Kidney Function Test","Microalbumin (Urine)","Lipid Profile"]'::jsonb),
   ('Healthy Heart Package', 'healthy-heart', 1899, 3200, 28, 'Heart', true, true, 24, true, 'Adults 35+ · Cardiac risk screening', 'Assess your cardiac risk with lipids, homocysteine, hs-CRP, ECG and sugar screening.', '["Lipid Profile","Homocysteine","C-Reactive Protein (CRP)","ECG (Resting)","Fasting Blood Sugar","Complete Blood Count (CBC)"]'::jsonb),
   ('Women''s Wellness Package', 'womens-wellness', 2199, 3800, 45, 'Women', true, true, 48, true, 'Women 25+ · Hormone &amp; vitality check', 'Designed for women — thyroid, iron, vitamins, hormones and a complete metabolic screen.', '["Complete Blood Count (CBC)","Thyroid Profile (T3, T4, TSH)","Iron Studies","Vitamin D (25-OH)","Vitamin B12","FSH &amp; LH Panel","Prolactin","Urine Routine &amp; Microscopy"]'::jsonb),
@@ -1048,16 +1048,16 @@ values
   ('Vitamin D Deficiency: The Epidemic Hiding in Plain Sunlight', 'vitamin-d-deficiency-epidemic', 'Wellness', 'Dr. Suresh Patil', 'Family Physician', 'https://placehold.co/800x450/fef9c3/854d0e?text=Vitamin%20D', '2026-06-02', 5, array['vitamin d','fatigue'], 'Three out of four urban Indians are Vitamin D deficient. Fatigue, body aches and low mood are the usual disguises.', 'Despite abundant sunshine, urban India has one of the highest Vitamin D deficiency rates in the world — glass offices, sunscreen, pollution and indoor lifestyles block the UVB rays that make Vitamin D in the skin.' || E'\n\n' || 'Symptoms are vague by design: persistent tiredness, body aches, hair fall, low mood, frequent infections. Most people blame work stress for what is actually a fixable deficiency.'),
   ('PCOS Is Not Just About Periods: A Complete Guide', 'pcos-complete-guide', 'Women’s Health', 'Dr. Kavitha Reddy', 'Gynecologist', 'https://placehold.co/800x450/fce7f3/9d174d?text=PCOS%20Guide', '2026-05-27', 8, array['pcos','hormones'], 'One in five Indian women has PCOS. It is a metabolic condition first — and that reframing changes everything about treatment.', 'Polycystic Ovary Syndrome affects roughly 20% of Indian women of reproductive age, yet it is one of the most misunderstood diagnoses. Irregular periods are just the visible tip; underneath sits insulin resistance driving the hormonal imbalance.' || E'\n\n' || 'Common signs: irregular or missed cycles, acne along the jawline, excess facial hair, weight gain around the waist, hair thinning and difficulty conceiving.'),
   ('The 8-Hour Myth: What Sleep Science Actually Says', 'sleep-science-myths', 'Mental Health', 'Dr. Meera Krishnan', 'Psychiatrist', 'https://placehold.co/800x450/e0e7ff/3730a3?text=Sleep%20Science', '2026-05-21', 6, array['sleep','mental health'], 'Quality beats quantity. Here is how to diagnose your own sleep and fix the three most common saboteurs.', 'The famous "8 hours" is a population average, not a personal prescription. Some adults genuinely thrive on 7, others need 9. What matters more is sleep architecture — whether you cycle properly through deep and REM sleep.' || E'\n\n' || 'Three modern saboteurs dominate: screens within an hour of bed (blue light suppresses melatonin), caffeine after 2 PM (its half-life is 5–6 hours), and irregular sleep timing (your brain treats a shifting bedtime like permanent jet lag).'),
-  ('Protein for Vegetarians: Hitting 60g a Day Without Supplements', 'vegetarian-protein-guide', 'Nutrition', 'Nutrition Team, LabEasy', 'Clinical Nutrition', 'https://placehold.co/800x450/dcfce7/14532d?text=Vegetarian%20Protein', '2026-05-15', 5, array['protein','nutrition'], 'The average Indian vegetarian eats barely half the protein they need. Here is a realistic, dal-and-dahi friendly fix.', 'Surveys consistently show Indian vegetarian diets averaging 35–40g of protein a day against a 55–70g requirement — a gap that shows up as muscle loss, weak hair and nails, and stubborn fatigue.' || E'\n\n' || 'The fix is arithmetic, not exotic ingredients. Anchor every meal with one protein source: moong chilla or paneer bhurji at breakfast (15g), dal plus curd at lunch (18g), roasted chana as the evening snack (10g), rajma or tofu at dinner (15g).'),
+  ('Protein for Vegetarians: Hitting 60g a Day Without Supplements', 'vegetarian-protein-guide', 'Nutrition', 'Nutrition Team, Medis', 'Clinical Nutrition', 'https://placehold.co/800x450/dcfce7/14532d?text=Vegetarian%20Protein', '2026-05-15', 5, array['protein','nutrition'], 'The average Indian vegetarian eats barely half the protein they need. Here is a realistic, dal-and-dahi friendly fix.', 'Surveys consistently show Indian vegetarian diets averaging 35–40g of protein a day against a 55–70g requirement — a gap that shows up as muscle loss, weak hair and nails, and stubborn fatigue.' || E'\n\n' || 'The fix is arithmetic, not exotic ingredients. Anchor every meal with one protein source: moong chilla or paneer bhurji at breakfast (15g), dal plus curd at lunch (18g), roasted chana as the evening snack (10g), rajma or tofu at dinner (15g).'),
   ('Thyroid Tests Decoded: T3, T4, TSH and When Each Matters', 'thyroid-tests-decoded', 'Lab Tests', 'Dr. Nandini Shah', 'Endocrinologist', 'https://placehold.co/800x450/ede9fe/5b21b6?text=Thyroid%20Decoded', '2026-05-09', 6, array['thyroid','tsh'], 'TSH high but T4 normal? Here is a plain-language map of what thyroid numbers actually mean.', 'Think of TSH as the thermostat and T3/T4 as the heat. The pituitary gland releases TSH to tell the thyroid how much hormone to make — so TSH moves opposite to thyroid activity.' || E'\n\n' || 'High TSH with low T4 = hypothyroidism (underactive; fatigue, weight gain, cold intolerance). Low TSH with high T4 = hyperthyroidism (overactive; palpitations, weight loss, anxiety). High TSH with normal T4 = subclinical hypothyroidism — the grey zone where trends and symptoms guide treatment.'),
   ('Walking 10,000 Steps: Marketing Gimmick or Medicine?', 'walking-10000-steps-truth', 'Fitness', 'Dr. Suresh Patil', 'Family Physician', 'https://placehold.co/800x450/cffafe/155e75?text=10000%20Steps', '2026-05-03', 4, array['walking','fitness'], 'The 10,000 figure came from a 1960s pedometer ad. The real dose-response curve is more forgiving — and more interesting.', 'The 10,000-step target originated as a Japanese pedometer marketing campaign in the 1960s, not a lab. Modern research paints a more nuanced picture: mortality benefit rises steeply from 4,000 to about 7,500 steps, then flattens.' || E'\n\n' || 'Intensity matters as much as count. Brisk intervals — walking fast enough that talking becomes slightly effortful — improve cardiovascular fitness far more than the same steps ambled.'),
   ('Anxiety vs. Everyday Stress: When to Seek Help', 'anxiety-vs-stress', 'Mental Health', 'Dr. Abhishek Verma', 'Psychiatrist', 'https://placehold.co/800x450/fae8ff/86198f?text=Anxiety%20vs%20Stress', '2026-04-27', 6, array['anxiety','therapy'], 'Stress ends when the deadline does. Anxiety writes its own deadlines. Here is a practical line between the two.', 'Stress is a response to a real, present demand — an exam, a deadline, a difficult conversation. It is proportionate and it fades when the trigger passes. Anxiety persists after the trigger is gone, attaches itself to hypotheticals, and starts avoiding things.' || E'\n\n' || 'Warning signs that it is more than stress: worry most days for over six months, physical symptoms (racing heart, chest tightness, stomach issues) without medical cause, sleep disruption, and avoiding situations you previously handled.'),
   ('Fatty Liver: The Lifestyle Disease You Can Actually Reverse', 'fatty-liver-reversal', 'Wellness', 'Dr. Aditya Rao', 'Gastroenterologist', 'https://placehold.co/800x450/ffedd5/9a3412?text=Fatty%20Liver', '2026-04-21', 7, array['liver','nafld'], 'One in three urban adults has a fatty liver — most without drinking alcohol. The reversal window is wide open if you catch it early.', 'Non-alcoholic fatty liver disease (NAFLD) now affects roughly a third of urban Indian adults. Excess sugar and refined carbs — not just alcohol — get converted to fat and stored in liver cells.' || E'\n\n' || 'It is silent in the early stages: usually spotted as raised SGPT/SGOT on a routine liver function test, or as "grade 1 fatty liver" on an ultrasound done for something else.'),
-  ('Understanding Your CBC Report: A Line-by-Line Walkthrough', 'cbc-report-explained', 'Lab Tests', 'Pathology Team, LabEasy', 'Clinical Pathology', 'https://placehold.co/800x450/dbeafe/1d4ed8?text=CBC%20Explained', '2026-04-15', 8, array['cbc','blood test'], 'Haemoglobin, WBC, platelets, MCV — your CBC has a story in every row. Here is how to read it without panicking.', 'The Complete Blood Count is the most-ordered lab test in the world, and also the most misread by patients. Here is the plain-language version.' || E'\n\n' || 'Haemoglobin carries oxygen. Low values mean anaemia — in India most commonly from iron deficiency; the MCV column tells the subtype (low MCV suggests iron deficiency, high MCV points to B12/folate).'),
+  ('Understanding Your CBC Report: A Line-by-Line Walkthrough', 'cbc-report-explained', 'Lab Tests', 'Pathology Team, Medis', 'Clinical Pathology', 'https://placehold.co/800x450/dbeafe/1d4ed8?text=CBC%20Explained', '2026-04-15', 8, array['cbc','blood test'], 'Haemoglobin, WBC, platelets, MCV — your CBC has a story in every row. Here is how to read it without panicking.', 'The Complete Blood Count is the most-ordered lab test in the world, and also the most misread by patients. Here is the plain-language version.' || E'\n\n' || 'Haemoglobin carries oxygen. Low values mean anaemia — in India most commonly from iron deficiency; the MCV column tells the subtype (low MCV suggests iron deficiency, high MCV points to B12/folate).'),
   ('Pregnancy Trimester Tests: What, When and Why', 'pregnancy-trimester-tests', 'Women’s Health', 'Dr. Kavitha Reddy', 'Gynecologist', 'https://placehold.co/800x450/fce7f3/be185d?text=Pregnancy%20Tests', '2026-04-09', 7, array['pregnancy','antenatal'], 'A trimester-wise map of antenatal tests, so nothing is missed and nothing is a surprise.', 'First trimester (weeks 1–12): confirm and date the pregnancy with beta-hCG and an early scan; baseline blood work — CBC, blood group with Rh, thyroid, fasting sugar, HIV/HBsAg screening and urine routine. The NT scan plus dual marker between weeks 11–13 screens for chromosomal conditions.' || E'\n\n' || 'Second trimester (weeks 13–26): the anomaly scan around week 20 checks the baby’s organs in detail. A glucose tolerance test between weeks 24–28 screens for gestational diabetes — increasingly common and very manageable when caught.'),
   ('Dengue Season Survival Guide: Tests, Timing and Red Flags', 'dengue-season-guide', 'Wellness', 'Dr. Ananya Iyer', 'General Physician', 'https://placehold.co/800x450/fee2e2/b91c1c?text=Dengue%20Guide', '2026-04-03', 6, array['dengue','fever'], 'Which dengue test works on which day of fever, and the warning signs that mean hospital — not home care.', 'Dengue diagnosis is all about timing. The NS1 antigen test works best in the first 5 days of fever. From day 5 onward, IgM antibodies become detectable. Testing on the wrong day produces false reassurance.' || E'\n\n' || 'Home management works for most cases: paracetamol for fever (never ibuprofen or aspirin — they increase bleeding risk), aggressive oral fluids, and a daily CBC once platelets start dipping.'),
   ('Strength Training After 40: The Anti-Ageing Prescription Nobody Writes', 'strength-training-after-40', 'Fitness', 'Dr. Vikram Singh', 'Orthopedic Surgeon', 'https://placehold.co/800x450/ecfdf5/065f46?text=Strength%20After%2040', '2026-03-28', 6, array['strength','bones'], 'From 40 onward you lose muscle every year you don’t fight for it. Two sessions a week rewrites that script.', 'After 40, adults lose 3–8% of muscle mass per decade — a process called sarcopenia — along with bone density. This, more than "age", is why falls, fractures and frailty happen. The antidote is progressive resistance training.' || E'\n\n' || 'You do not need a bodybuilder’s routine. Two full-body sessions a week — squats, pushes, pulls, hinges and carries — maintain and even rebuild muscle well into the 70s. Start with bodyweight and bands; add load gradually.'),
-  ('The Complete Guide to Home Sample Collection: What Happens to Your Blood After the Doorbell', 'home-sample-collection-guide', 'Lab Tests', 'Operations Team, LabEasy', 'Lab Operations', 'https://placehold.co/800x450/e0f2fe/075985?text=Home%20Collection', '2026-03-22', 5, array['home collection','quality'], 'Sealed kits, cold-chain boxes, barcoded tubes — a behind-the-scenes look at how home-collected samples stay lab-grade.', 'Ever wondered whether a home-collected sample is as reliable as walking into a lab? When the cold chain is respected, the answer is yes — here is the journey your sample takes.' || E'\n\n' || 'Before the visit: the phlebotomist’s kit is packed with single-use, factory-sealed needles and vacutainer tubes, each barcoded to your booking. You can — and should — check the seals before the draw.'),
+  ('The Complete Guide to Home Sample Collection: What Happens to Your Blood After the Doorbell', 'home-sample-collection-guide', 'Lab Tests', 'Operations Team, Medis', 'Lab Operations', 'https://placehold.co/800x450/e0f2fe/075985?text=Home%20Collection', '2026-03-22', 5, array['home collection','quality'], 'Sealed kits, cold-chain boxes, barcoded tubes — a behind-the-scenes look at how home-collected samples stay lab-grade.', 'Ever wondered whether a home-collected sample is as reliable as walking into a lab? When the cold chain is respected, the answer is yes — here is the journey your sample takes.' || E'\n\n' || 'Before the visit: the phlebotomist’s kit is packed with single-use, factory-sealed needles and vacutainer tubes, each barcoded to your booking. You can — and should — check the seals before the draw.'),
   ('Acidity, Gas and Bloating: When Is It More Than Just Spicy Food?', 'acidity-bloating-guide', 'Wellness', 'Dr. Aditya Rao', 'Gastroenterologist', 'https://placehold.co/800x450/fef3c7/92400e?text=Gut%20Health', '2026-03-16', 6, array['acidity','gut'], 'Occasional heartburn is life. Weekly heartburn is a pattern. Here is the line between lifestyle fixes and needing a scope.', 'Heartburn after an occasional heavy dinner is normal physiology. Heartburn more than twice a week, for weeks, is GERD — and it deserves attention, because chronic acid exposure damages the food pipe.' || E'\n\n' || 'Start with the honest basics: eat dinner 3 hours before lying down, reduce (not eliminate) tea and coffee, lose belly weight, elevate the head of the bed, and audit trigger foods personally — they differ for everyone.'),
   ('Children’s Vaccination Schedule: A Parent’s No-Panic Cheat Sheet', 'child-vaccination-cheatsheet', 'Wellness', 'Dr. Arjun Nair', 'Pediatrician', 'https://placehold.co/800x450/dcfce7/166534?text=Vaccination%20Guide', '2026-03-10', 7, array['vaccination','children'], 'Which shots, at what age, and what is optional versus essential — a calm, practical guide for parents.', 'Vaccines are the single most effective health intervention in history, and yet the schedule can feel overwhelming to new parents. Here is the mental model: shots cluster around birth, 6–14 weeks, 9–12 months, 15–18 months, and a school-entry booster round.' || E'\n\n' || 'At birth: BCG, first hepatitis B dose and oral polio. Weeks 6, 10 and 14: the combination shots covering diphtheria, tetanus, pertussis, Hib, hepatitis B and polio, plus rotavirus and pneumococcal doses.'),
   ('B12 Deficiency: Why Vegetarians Feel Tired, Tingly and Foggy', 'b12-deficiency-guide', 'Nutrition', 'Dr. Ananya Iyer', 'General Physician', 'https://placehold.co/800x450/fee2e2/7f1d1d?text=Vitamin%20B12', '2026-03-04', 5, array['b12','vegetarian'], 'Vitamin B12 lives almost exclusively in animal foods — which makes deficiency nearly universal in long-term vegetarians.', 'Vitamin B12 is needed to make red blood cells and maintain nerve insulation, and it occurs naturally almost only in animal foods. Long-term vegetarians and vegans are therefore at very high risk of deficiency.' || E'\n\n' || 'Symptoms creep in over years: fatigue that sleep doesn’t fix, tingling or numbness in hands and feet, brain fog and forgetfulness, a sore tongue and, in advanced cases, unsteady walking.'),
@@ -1066,7 +1066,7 @@ on conflict (slug) do nothing;
 
 -- 7.9 faqs (12)
 insert into public.faqs (question, answer, category, sort_order) values
-  ('How do I book a doctor appointment on LabEasy?', 'Search for a doctor by name, specialty or symptom, open their profile, pick an available date and time slot, choose in-clinic or video consultation, fill in the patient details and confirm. You will receive an instant confirmation and a reminder before the visit.', 'Appointments', 1),
+  ('How do I book a doctor appointment on Medis?', 'Search for a doctor by name, specialty or symptom, open their profile, pick an available date and time slot, choose in-clinic or video consultation, fill in the patient details and confirm. You will receive an instant confirmation and a reminder before the visit.', 'Appointments', 1),
   ('Can I cancel or reschedule my appointment?', 'Yes. Go to My Appointments in your dashboard, open the appointment and choose Cancel or Reschedule. Cancellations made at least 2 hours before the slot are fully refundable to your original payment method.', 'Appointments', 2),
   ('How does a video consultation work?', 'After booking a video consultation you will receive a secure link in your notifications and email. Join from any phone or laptop with a camera — no app installation is required. The doctor can share a digital prescription right after the call.', 'Appointments', 3),
   ('How does home sample collection work?', 'Choose your tests, select "Home Sample Collection", and pick a convenient slot. A certified phlebotomist arrives at your doorstep with sealed, single-use kits, collects the sample and transports it in temperature-controlled boxes to our NABL-accredited labs.', 'Lab Tests', 4),
@@ -1074,9 +1074,9 @@ insert into public.faqs (question, answer, category, sort_order) values
   ('When and how will I get my reports?', 'Most reports are ready within 6–24 hours. You will get a "Report Ready" notification, and reports can be viewed or downloaded as PDF from My Reports in your dashboard. Reports remain available in your account permanently.', 'Lab Tests', 6),
   ('What payment methods do you accept?', 'Payments are collected in cash. You pay after your sample is collected (at home or at the lab) and after doctor consultations — no online payment is needed to book.', 'Payments', 7),
   ('Can I cancel my test or appointment?', 'Yes — open it in your dashboard and cancel any time before the visit. Since payment is collected in cash at the time of service, a cancellation made beforehand simply means there is nothing to pay.', 'Payments', 8),
-  ('Is my medical data safe with LabEasy?', 'Absolutely. Your records are encrypted in transit and at rest, stored on secure infrastructure, and are never shared with third parties without your explicit consent. Only you and the doctors you consult can view your reports.', 'Account', 9),
+  ('Is my medical data safe with Medis?', 'Absolutely. Your records are encrypted in transit and at rest, stored on secure infrastructure, and are never shared with third parties without your explicit consent. Only you and the doctors you consult can view your reports.', 'Account', 9),
   ('Can I manage health records for my family members?', 'Yes. You can add family members as patients while booking, and each booking keeps its own patient details so everyone’s history stays organised under your single account.', 'Account', 10),
-  ('Are your labs accredited?', 'All LabEasy partner laboratories are NABL-accredited and follow strict quality-control protocols with daily calibration and double verification of abnormal results by senior pathologists.', 'Lab Tests', 11),
+  ('Are your labs accredited?', 'All Medis partner laboratories are NABL-accredited and follow strict quality-control protocols with daily calibration and double verification of abnormal results by senior pathologists.', 'Lab Tests', 11),
   ('What if the doctor does not join the video call?', 'In the rare case a doctor misses the slot, we automatically reschedule you on priority or issue a full refund — your choice. Our support team is available 7 AM to 10 PM every day.', 'Appointments', 12)
 on conflict (question) do nothing;
 
@@ -1084,7 +1084,7 @@ on conflict (question) do nothing;
 insert into public.testimonials (name, avatar_url, rating, city, service, quote, sort_order) values
   ('Ramesh Gupta',    'https://ui-avatars.com/api/?name=Ramesh%20Gupta&amp;background=2563eb&amp;color=fff&amp;size=128&amp;bold=true',    5, 'Bengaluru', 'Full Body Checkup',   'Booked the Advanced Full Body package for my parents. The phlebotomist was on time, extremely gentle, and reports arrived on my phone the same evening. Outstanding service.', 1),
   ('Shalini Verma',   'https://ui-avatars.com/api/?name=Shalini%20Verma&amp;background=db2777&amp;color=fff&amp;size=128&amp;bold=true',   5, 'Delhi',     'Video Consultation',  'I consulted a dermatologist over video during my lunch break. The prescription was in my dashboard before I got back to my desk. This is how healthcare should work.', 2),
-  ('Joseph Mathew',   'https://ui-avatars.com/api/?name=Joseph%20Mathew&amp;background=059669&amp;color=fff&amp;size=128&amp;bold=true',   4, 'Chennai',   'Doctor Appointment',  'Finding a good cardiologist near me used to take days of asking around. On LabEasy I compared ratings, fees and slots, and booked in under five minutes.', 3),
+  ('Joseph Mathew',   'https://ui-avatars.com/api/?name=Joseph%20Mathew&amp;background=059669&amp;color=fff&amp;size=128&amp;bold=true',   4, 'Chennai',   'Doctor Appointment',  'Finding a good cardiologist near me used to take days of asking around. On Medis I compared ratings, fees and slots, and booked in under five minutes.', 3),
   ('Ayesha Khan',     'https://ui-avatars.com/api/?name=Ayesha%20Khan&amp;background=7c3aed&amp;color=fff&amp;size=128&amp;bold=true',     5, 'Mumbai',    'Home Collection',     'With a newborn at home, stepping out for blood tests was impossible. Home collection was a lifesaver — hygienic, quick and the reports were easy to understand.', 4),
   ('Prakash Rao',     'https://ui-avatars.com/api/?name=Prakash%20Rao&amp;background=ca8a04&amp;color=fff&amp;size=128&amp;bold=true',     5, 'Hyderabad', 'Diabetes Package',    'I have been using the quarterly Diabetes Care package for a year. The trend view of my HbA1c across reports keeps me motivated and my doctor loves the consolidated history.', 5),
   ('Meenakshi Iyer',  'https://ui-avatars.com/api/?name=Meenakshi%20Iyer&amp;background=0d9488&amp;color=fff&amp;size=128&amp;bold=true',  4, 'Pune',      'Health Package',      'Transparent pricing, no hidden charges, and the reminder before my fasting test was thoughtful. Customer support actually picks up the phone!', 6)
@@ -1358,17 +1358,17 @@ end $$;
 --      Defaults are Bangladesh + cash payments; the admin can change everything.
 insert into public.settings (key, value) values
   ('country_code',    '"BD"'::jsonb),
-  ('brand_name',      '"LabEasy"'::jsonb),
+  ('brand_name',      '"Medis"'::jsonb),
   ('brand_tagline',   '"Trusted healthcare, simplified."'::jsonb),
   ('contact_phone',   '"+880 1711-123456"'::jsonb),
-  ('contact_email',   '"care@labeasy.health"'::jsonb),
+  ('contact_email',   '"care@medis.health"'::jsonb),
   ('contact_address', '"Level 4, Wellness Tower, Gulshan Avenue, Dhaka 1212, Bangladesh"'::jsonb),
   ('contact_hours',   '"Sat - Thu: 8:00 AM - 10:00 PM"'::jsonb),
-  ('social_facebook', '{"url":"https://facebook.com/labeasy","enabled":true}'::jsonb),
-  ('social_twitter',  '{"url":"https://x.com/labeasy","enabled":true}'::jsonb),
-  ('social_instagram','{"url":"https://instagram.com/labeasy","enabled":true}'::jsonb),
-  ('social_linkedin', '{"url":"https://linkedin.com/company/labeasy","enabled":true}'::jsonb),
-  ('social_youtube',  '{"url":"https://youtube.com/@labeasy","enabled":false}'::jsonb)
+  ('social_facebook', '{"url":"https://facebook.com/medis","enabled":true}'::jsonb),
+  ('social_twitter',  '{"url":"https://x.com/medis","enabled":true}'::jsonb),
+  ('social_instagram','{"url":"https://instagram.com/medis","enabled":true}'::jsonb),
+  ('social_linkedin', '{"url":"https://linkedin.com/company/medis","enabled":true}'::jsonb),
+  ('social_youtube',  '{"url":"https://youtube.com/@medis","enabled":false}'::jsonb)
 on conflict (key) do nothing;
 
 -- Remove the legacy India-specific placeholder settings (unused by the app).
@@ -1691,7 +1691,7 @@ create table if not exists public.reviews (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid references auth.users(id) on delete cascade,
   doctor_id     uuid not null references public.doctors(id) on delete cascade,
-  reviewer_name text not null default 'LabEasy Patient',
+  reviewer_name text not null default 'Medis Patient',
   rating        int not null check (rating between 1 and 5),
   comment       text default '',
   is_approved   boolean not null default true,
@@ -1745,7 +1745,7 @@ create table if not exists public.blogs (
   title           text not null,
   slug            text not null unique,
   category        text default '',
-  author_name     text default 'LabEasy Team',
+  author_name     text default 'Medis Team',
   author_role     text default '',
   cover_image_url text default '',
   published_at    date default current_date,
@@ -2037,7 +2037,7 @@ create policy "Report owner read" on storage.objects
 
   <div class="step"><div class="n">3</div><div class="body">
     <h4>Set the redirect URLs for password reset</h4>
-    <p><b>Authentication → URL Configuration</b>: set <b>Site URL</b> to your deployed origin (e.g. <code>https://labeasy.example.com</code>) and add these to <b>Redirect URLs</b> — the forgot-password email link must land on the site’s <code>/reset-password</code> route:</p>
+    <p><b>Authentication → URL Configuration</b>: set <b>Site URL</b> to your deployed origin (e.g. <code>https://medis.example.com</code>) and add these to <b>Redirect URLs</b> — the forgot-password email link must land on the site’s <code>/reset-password</code> route:</p>
     <div class="codeblock"><div class="cb-head"><span class="cb-title"><span class="dot"></span>redirect urls</span><button class="copybtn" onclick="copyCode(this)">Copy</button></div>
 <pre>
 http://localhost:5173/reset-password
@@ -2240,7 +2240,7 @@ select id, public from storage.buckets order by id;    -- avatars=true, reports=
 </main>
 </div>
 
-<footer>LabEasy · Supabase Database Documentation · schema v1.0 · patient site + LabEasy Diagnostics admin panel share this database</footer>
+<footer>Medis · Supabase Database Documentation · schema v1.0 · patient site + Medis Diagnostics admin panel share this database</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <script>

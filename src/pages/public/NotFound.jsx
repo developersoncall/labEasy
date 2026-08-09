@@ -29,7 +29,7 @@ export default function NotFound() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link to="/" className="btn-primary" aria-label="Go back to the LabEasy home page">
+            <Link to="/" className="btn-primary" aria-label="Go back to the Medis home page">
               <IoHome aria-hidden="true" />
               Back to Home
             </Link>

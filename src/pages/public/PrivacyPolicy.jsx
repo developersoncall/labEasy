@@ -28,9 +28,9 @@ export default function PrivacyPolicy() {
             <p className="mt-2 text-sm text-gray-500">Last updated: {LAST_UPDATED}</p>
 
             <p className="mt-6 text-sm leading-relaxed text-gray-600 sm:text-base">
-              LabEasy (&ldquo;we&rdquo;, &ldquo;us&rdquo; or &ldquo;our&rdquo;) provides doctor
+              Medis (&ldquo;we&rdquo;, &ldquo;us&rdquo; or &ldquo;our&rdquo;) provides doctor
               appointments, video consultations, diagnostic test bookings and digital health records
-              through the LabEasy website and services. Your health information is among the most
+              through the Medis website and services. Your health information is among the most
               sensitive data there is, and this policy explains — in plain language — what we
               collect, why we collect it, how we protect it and the choices you have.
             </p>
@@ -105,7 +105,7 @@ export default function PrivacyPolicy() {
             </Section>
 
             <Section title="5. Third parties">
-              <p>We share data with a limited set of service providers, strictly to run LabEasy:</p>
+              <p>We share data with a limited set of service providers, strictly to run Medis:</p>
               <ul className="list-disc space-y-2 pl-5">
                 <li>
                   <strong>Partner laboratories and doctors</strong> — the patient and booking details

@@ -25,7 +25,7 @@ export default function TestimonialsSection() {
         <SectionHeading
           eyebrow="Patient stories"
           title={`Loved by patients across ${APP_CONFIG.country}`}
-          subtitle="Real experiences from people who booked doctors, tests and home collections through LabEasy."
+          subtitle="Real experiences from people who booked doctors, tests and home collections through Medis."
         />
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

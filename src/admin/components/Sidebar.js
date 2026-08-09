@@ -5,7 +5,12 @@ import { useSettings } from '../../context/SettingsContext.jsx';
 const NAV = [
   { group:'Overview', items:[{key:'dashboard',icon:'📊',label:'Dashboard'}]},
   { group:'People', items:[{key:'users',icon:'👥',label:'Manage Users'},{key:'doctors',icon:'🩺',label:'Manage Doctors'}]},
-  { group:'Catalog', items:[{key:'tests',icon:'🔬',label:'Manage Tests'},{key:'categories',icon:'🗂️',label:'Test Categories'},{key:'packages',icon:'📦',label:'Health Packages'}]},
+  { group:'Catalog', items:[
+    {key:'tests',icon:'🔬',label:'Manage Tests'},
+    {key:'categories',icon:'🗂️',label:'Test Categories'},
+    {key:'packages',icon:'📦',label:'Health Packages'},
+    {key:'blogs',icon:'✍️',label:'Manage Blogs'},
+  ]},
   { group:'Bookings', items:[
     {key:'bookings',icon:'🧪',label:'Lab Bookings',badgeKey:'bookings'},
     {key:'appointments',icon:'🩺',label:'Doctor Appointments',badgeKey:'appointments'},

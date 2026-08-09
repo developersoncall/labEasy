@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medis — Change & Update Log</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #121826;
+      --surface-hover: #1b2335;
+      --border: #232c42;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #0ea5e9;
+      --primary-glow: rgba(14, 165, 233, 0.15);
+      --secondary: #10b981;
+      --secondary-glow: rgba(16, 185, 129, 0.15);
+      --accent: #a855f7;
+      --accent-glow: rgba(168, 85, 247, 0.15);
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.2);
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-family: var(--font-heading);
+      font-size: 2.75rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, #a5f3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 400;
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.25rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .card.feature-card::before {
+      background: var(--secondary);
+    }
+
+    .card.cleanup-card::before {
+      background: var(--accent);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(14, 165, 233, 0.15);
+    }
+
+    .feature-card .icon-wrapper {
+      background: var(--secondary-glow);
+      color: var(--secondary);
+      border-color: rgba(16, 185, 129, 0.15);
+    }
+
+    .cleanup-card .icon-wrapper {
+      background: var(--accent-glow);
+      color: var(--accent);
+      border-color: rgba(168, 85, 247, 0.15);
+    }
+
+    h2 {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: auto;
+    }
+
+    .badge-fixed {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--secondary);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .badge-added {
+      background: rgba(14, 165, 233, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(14, 165, 233, 0.2);
+    }
+
+    .change-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .list-title {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .feature-card li::before {
+      color: var(--secondary);
+    }
+
+    .cleanup-card li::before {
+      color: var(--accent);
+    }
+
+    .highlight-text {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .card {
+        padding: 1.5rem;
+      }
+      .card-header-wrap {
+        flex-wrap: wrap;
+      }
+      .badge-status {
+        margin-left: 0;
+        margin-top: 0.25rem;
+        width: fit-content;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="logo-badge">System Logs</div>
+      <h1>Medis Project Update Log</h1>
+      <p class="subtitle">Detailed changes logged on August 09, 2026, addressing global app renaming, database sync anomalies, and admin experience improvements.</p>
+    </header>
+
+    <!-- Card 1: Bug Fixes in Packages Data Sync -->
+    <div class="card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">🔄</div>
+        <div>
+          <h2>Health Package Data Synchronization</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Fixed parameters and test checklist reset behavior on DB updates</p>
+        </div>
+        <span class="badge-status badge-fixed">Fixed</span>
+      </div>
+      
+      <p class="change-desc">
+        Resolved an issue where updating packages via the Medis Admin dashboard was writing empty checklists (`[]`) and losing package metadata. `pkgFromRow` and `pkgToRow` mappings did not previously handle the integration fields correctly, causing database sync anomalies.
+      </p>
+
+      <div class="list-title">Core Improvements Made:</div>
+      <ul>
+        <li><span class="highlight-text">Database Field Mappings:</span> Restored reading and writing of database parameters (`category`, `ideal_for`, `fasting_required`, `report_hours`, `is_popular`, `home_collection_available`, and `included_tests`).</li>
+        <li><span class="highlight-text">Interactive Test Selection:</span> Fixed test names-to-IDs mapping when opening the Edit Modal to make sure checkboxes are prepopulated.</li>
+        <li><span class="highlight-text">Safe Persistence:</span> Implemented auto-mapping of test IDs back to full test names when saving, ensuring data integrity in the database.</li>
+      </ul>
+    </div>
+
+    <!-- Card 2: Expanded Admin Panel Modal Features -->
+    <div class="card feature-card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">✨</div>
+        <div>
+          <h2>Expanded Admin Form Configuration</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Added inputs for demographic, turnaround, and package priority flags</p>
+        </div>
+        <span class="badge-status badge-added">Added</span>
+      </div>
+      
+      <p class="change-desc">
+        Integrated additional user interface controls in the Admin Package Modal to configure the exact attributes expected by the patient-facing health checkup cards.
+      </p>
+
+      <div class="list-title">Core UI Controls Configured:</div>
+      <ul>
+        <li><span class="highlight-text">Category Selection:</span> Dropdown menu offering catalog tags like Full Body, Diabetes, Heart, Women, Men, Seniors, Infections, Thyroid, and Couples.</li>
+        <li><span class="highlight-text">Ideal For Demographics:</span> Dedicated input field to set descriptive target tags (e.g. "Women 25+ · Hormone & vitality check").</li>
+        <li><span class="highlight-text">Fasting & Popular Status Toggles:</span> Dual slider switches to indicate fasting requirements and whether to overlay the "Popular" badge.</li>
+        <li><span class="highlight-text">Turnaround Time:</span> Custom turnaround hours configuration input mapped directly to report delivery status windows.</li>
+        <li><span class="highlight-text">Days Format Display:</span> Automatically format turnaround hours in days for any duration greater than 24 hours. Implemented custom threshold logic where a fractional day of 0.4 or lower rounds down to the lower day count, and anything higher rounds up to the next full day count (e.g., 80 hours yields 3 days, 82 hours yields 4 days).</li>
+      </ul>
+    </div>
+
+    <!-- Card 3: Global Branding Alignment -->
+    <div class="card cleanup-card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">🏷️</div>
+        <div>
+          <h2>Branding Alignment (labEasy ➜ Medis)</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Converted naming assets and storage configurations globally</p>
+        </div>
+        <span class="badge-status badge-fixed">Renamed</span>
+      </div>
+      
+      <p class="change-desc">
+        Cleaned references and keys of the prior branding version, renaming everything cleanly to align with the Medis application branding.
+      </p>
+
+      <div class="list-title">Files Updated globally (40 items):</div>
+      <ul>
+        <li><span class="highlight-text">Configuration:</span> App settings, locale cache keys (`medis_country`), shopping carts (`medis_cart`), and settings page (`medis_prefs`).</li>
+        <li><span class="highlight-text">Pages & Documentation:</span> Renamed headers, footers, FAQs, schemas, and readmes to use Medis branding.</li>
+        <li><span class="highlight-text">Metadata & CSV:</span> App name in `package.json` changed to `medis-website`, and exports are downloaded as `medis-*.csv`.</li>
+      </ul>
+    <!-- Card 4: Home Page Layout Adjustment -->
+    <div class="card feature-card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">🏠</div>
+        <div>
+          <h2>Home Screen Packages Layout</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Configured display of all diagnostic checkup packages</p>
+        </div>
+        <span class="badge-status badge-added">Updated</span>
+      </div>
+      
+      <p class="change-desc">
+        Modified the home screen checkups catalog block to render all active packages rather than limiting display to popular ones, allowing users to browse the full suite of health checkups directly from the home landing page.
+      </p>
+
+      <div class="list-title">Core Updates:</div>
+      <ul>
+        <li><span class="highlight-text">Query Loader:</span> Changed `getPopularPackages` to `getAllPackages` in the packages section container.</li>
+        <li><span class="highlight-text">Grid Adaptation:</span> Verified the responsive cards grid gracefully fits the expanded catalog listing.</li>
+      </ul>
+    <!-- Card 5: Blogs CMS Feature Integration -->
+    <div class="card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">✍️</div>
+        <div>
+          <h2>Blogs CMS Feature Integration</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Created full-featured blogging flow for both patient site and admin panel</p>
+        </div>
+        <span class="badge-status badge-added">Added</span>
+      </div>
+      
+      <p class="change-desc">
+        Designed and built a complete blogging CMS. Patients can discover articles, search content, and filter by medical category. Admins can manage articles (Create, Read, Update, Delete) and toggle publish status directly from the control panel.
+      </p>
+
+      <div class="list-title">Core Components Configured:</div>
+      <ul>
+        <li><span class="highlight-text">Database Integration:</span> Developed `blogService.js` and `blogsData` admin mappings connected to the Supabase `blogs` table.</li>
+        <li><span class="highlight-text">User Pages:</span> Created `/blogs` listing page and a highly-polished, responsive `/blogs/:slug` details page containing cover images, structured paragraphs, metadata badges with icons, social sharing integrations (Facebook, Twitter, LinkedIn), and a "Recommended Reading" related articles section. Redesigned the sidebar CTA screening card with a bright healthcare-themed layout, value proposition checkmarks, and primary red action buttons.</li>
+        <li><span class="highlight-text">Admin Panel:</span> Created `/admin` blogs manager page (`src/admin/pages/Blogs/index.js`), added "Manage Blogs" to the sidebar catalog, and integrated a photo file uploader (`blogsData.uploadCover()`) next to the cover URL field inside the Add/Edit form, enabling real-time preview and bucket upload.</li>
+        <li><span class="highlight-text">Navigation:</span> Added "Blogs" link to the primary header navbar.</li>
+      </ul>
+    <!-- Card 6: Admin Management & Role Assignment -->
+    <div class="card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">🛡️</div>
+        <div>
+          <h2>Admin Management & Role Assignment</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Enabled administrator promotion controls within the user management views</p>
+        </div>
+        <span class="badge-status badge-added">Added</span>
+      </div>
+      
+      <p class="change-desc">
+        Configured a workflow allowing active administrators to promote standard users/patients to administrative roles, or view other administrators from the central control dashboard.
+      </p>
+
+      <div class="list-title">Core Controls Upgraded:</div>
+      <ul>
+        <li><span class="highlight-text">Profile Scope Expansion:</span> Removed the admin profile exclusion filter in `adminData.js`, enabling the list to load all database users.</li>
+        <li><span class="highlight-text">Role Management Mappings:</span> Wired role values inside serialization mappings (`userFromRow` and `usersData.save()`) to persist the `role` column back to Supabase.</li>
+        <li><span class="highlight-text">Dashboard Controls:</span> Added a Role selection dropdown (`patient` or `admin`) in the edit patient form, user cells role badges in the data list, and an "Administrators" stats counts monitor.</li>
+      </ul>
+    <!-- Card 7: Super Administrator Privilege Rules -->
+    <div class="card">
+      <div class="card-header-wrap">
+        <div class="icon-wrapper">🔑</div>
+        <div>
+          <h2>Super Administrator Privilege Rules</h2>
+          <p class="change-desc" style="margin-bottom: 0;">Restricted administrator creation and management to main admin account</p>
+        </div>
+        <span class="badge-status badge-added">Added</span>
+      </div>
+      
+      <p class="change-desc">
+        Enforced strict access control constraints across user profile administration: only the main account (<span class="highlight-text">medis.com.bd@gmail.com</span>) can promote other accounts to administrator, edit existing admin profiles, block/unblock admins, or delete them.
+      </p>
+
+      <div class="list-title">Core Enforcement Mechanics:</div>
+      <ul>
+        <li><span class="highlight-text">Email Authorization:</span> Formulated `isMainAdmin` flags resolving authorization permissions only for the primary email.</li>
+        <li><span class="highlight-text">Action Restrictions:</span> Hidden Edit, Delete, and Status block tools on administrators in the data table when loaded by secondary admin accounts.</li>
+        <li><span class="highlight-text">Form Level Constraints:</span> Disabled/replaced the Role selection input with a read-only text state if edited by secondary admin accounts.</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p>Medis Application Server &bull; Port 3000 &bull; Developer System Utility Log</p>
+      <p style="margin-top: 0.5rem;"><a href="/">Return to Medis App Home</a></p>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
  * until checkout. Persisted to localStorage so the cart survives reloads.
  * Item shape: { id, name, price, mrp, type: 'test' | 'package' }
  */
-const CART_STORAGE_KEY = 'labeasy_cart';
+const CART_STORAGE_KEY = 'medis_cart';
 
 /** Read the persisted cart, falling back to an empty cart on any error. */
 const readStoredCart = () => {

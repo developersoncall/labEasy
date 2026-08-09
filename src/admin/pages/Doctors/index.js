@@ -190,7 +190,7 @@ const Doctors = () => {
   const handleExport = () => {
     const headers = ['Name', 'Specialty', 'Qualifications', 'Experience', 'Clinic Fee', 'Video Fee', 'City', 'Clinic', 'Active'];
     const rows = filtered.map(d => [d.name, d.specialty, d.qualifications, d.experience, d.consultationFee, d.videoFee, d.city, d.clinic, d.active ? 'Yes' : 'No']);
-    exportCSV('labeasy-doctors.csv', headers, rows);
+    exportCSV('medis-doctors.csv', headers, rows);
     toast_('Exported CSV');
   };
 

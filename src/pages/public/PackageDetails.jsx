@@ -20,7 +20,7 @@ import useFetch from '../../hooks/useFetch.js';
 import useDocumentTitle from '../../hooks/useDocumentTitle.js';
 import { useCart } from '../../context/CartContext.jsx';
 import { diagnosticService } from '../../services/diagnosticService.js';
-import { formatCurrency, discountPercent } from '../../utils/helpers.js';
+import { formatCurrency, discountPercent, formatReportHours } from '../../utils/helpers.js';
 
 const REASSURANCE = [
   { icon: FaShieldAlt, text: 'Processed in NABL-accredited partner labs' },
@@ -126,7 +126,7 @@ export default function PackageDetails() {
                   {pkg.fastingRequired ? 'Fasting required (8–12 hrs)' : 'No fasting needed'}
                 </span>
                 <span className="badge bg-primary-50 text-primary-700">
-                  <FaClock aria-hidden="true" /> Report in {pkg.reportHours} hours
+                  <FaClock aria-hidden="true" /> Report in {formatReportHours(pkg.reportHours)}
                 </span>
                 {pkg.homeCollection && (
                   <span className="badge bg-secondary-50 text-secondary-700">

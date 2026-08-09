@@ -48,7 +48,7 @@ export default function MyProfile() {
     );
   }
 
-  const name = profile?.full_name || user.user_metadata?.full_name || 'LabEasy Member';
+  const name = profile?.full_name || user.user_metadata?.full_name || 'Medis Member';
   const phone = profile?.phone || user.user_metadata?.phone || '';
   const avatar =
     profile?.avatar_url ||

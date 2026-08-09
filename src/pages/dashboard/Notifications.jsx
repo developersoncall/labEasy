@@ -103,7 +103,7 @@ export default function Notifications() {
           icon={FaRegBell}
           title="No notifications yet"
           message="Booking confirmations, report alerts and appointment reminders will show up here."
-          actionLabel="Explore LabEasy"
+          actionLabel="Explore Medis"
           actionTo="/"
         />
       ) : (

@@ -1,10 +1,10 @@
-# LabEasy — Trusted Healthcare, Simplified
+# Medis — Trusted Healthcare, Simplified
 
-LabEasy is a full-featured healthcare web app where patients can **find doctors, book clinic or video consultations, order diagnostic tests and health packages with home sample collection, read health articles, and manage their entire medical life** (appointments, lab bookings, reports, prescriptions, favourites and notifications) from a personal dashboard.
+Medis is a full-featured healthcare web app where patients can **find doctors, book clinic or video consultations, order diagnostic tests and health packages with home sample collection, read health articles, and manage their entire medical life** (appointments, lab bookings, reports, prescriptions, favourites and notifications) from a personal dashboard.
 
 The app is a Vite + React 18 single-page application backed entirely by **Supabase** (Postgres + Auth + Storage). Every catalog item and every user action reads from and writes to Supabase — there is no bundled data. Until you connect a project (see [Supabase Setup](#-supabase-setup)), the app shows a friendly setup screen instead of the site.
 
-> The same Supabase database also powers the separate **LabEasy Diagnostics admin panel** (`labadmin-b1090.web.app`). See [Admin panel compatibility](#admin-panel-compatibility).
+> The same Supabase database also powers the separate **Medis Diagnostics admin panel** (`labadmin-b1090.web.app`). See [Admin panel compatibility](#admin-panel-compatibility).
 
 ---
 
@@ -36,7 +36,7 @@ The app is a Vite + React 18 single-page application backed entirely by **Supaba
 ## 📁 Folder Structure
 
 ```
-LabEASYWEbsite/
+MedisWebsite/
 ├── database.html            # Full Supabase schema + seed docs (open in a browser)
 ├── index.html
 ├── .env.example             # Copy to .env and fill in Supabase credentials
@@ -133,7 +133,7 @@ There is **no offline or demo data** — the app is Supabase-only:
 
 ## 🧑‍💼 Admin Panel Compatibility
 
-This database is shared with the **LabEasy Diagnostics** admin panel (`labadmin-b1090.web.app`):
+This database is shared with the **Medis Diagnostics** admin panel (`labadmin-b1090.web.app`):
 
 - The admin connects with the **service-role key**, which bypasses Row Level Security — RLS protects patient data from other patients, while the back office sees everything.
 - Admin modules map directly onto this schema: Bookings & Orders / Home Collections / Lab Visits → `booked_tests`; Reports (Pending → Verified → Signed) → `medical_reports`; Doctors → `doctors`; Users → `user_profiles`; Payments & Billing → `payments`; Categories → `test_categories`; Support Tickets → `contact_messages`; Banners/CMS & Settings → `settings`.

@@ -9,7 +9,7 @@ import { useSettings } from '../context/SettingsContext.jsx';
 export default function useDocumentTitle(title) {
   const { brandName } = useSettings();
   useEffect(() => {
-    const brand = brandName || 'LabEasy';
+    const brand = brandName || 'Medis';
     document.title = title ? `${title} | ${brand}` : `${brand} — Healthcare Appointments & Diagnostics`;
   }, [title, brandName]);
 }

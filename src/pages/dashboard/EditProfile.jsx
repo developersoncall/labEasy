@@ -129,7 +129,7 @@ export default function EditProfile() {
     );
   }
 
-  const displayName = user.user_metadata?.full_name || 'LabEasy Member';
+  const displayName = user.user_metadata?.full_name || 'Medis Member';
   const previewAvatar =
     avatarUrl ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=ff0000&color=fff&size=160`;

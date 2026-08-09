@@ -46,7 +46,7 @@ const SAFETY_POINTS = [
   {
     icon: FaFileMedicalAlt,
     title: 'Digital verified reports',
-    text: 'Every report is pathologist-signed and lands on your LabEasy dashboard as a downloadable PDF.',
+    text: 'Every report is pathologist-signed and lands on your Medis dashboard as a downloadable PDF.',
   },
 ];
 

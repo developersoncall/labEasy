@@ -29,7 +29,7 @@ export default function Terms() {
 
             <Section title="1. Acceptance of these terms">
               <p>
-                These Terms &amp; Conditions govern your use of the LabEasy website and services
+                These Terms &amp; Conditions govern your use of the Medis website and services
                 (&ldquo;the Platform&rdquo;). By creating an account, making a booking or otherwise
                 using the Platform, you agree to be bound by these terms and by our{' '}
                 <Link to="/privacy-policy" className="font-medium text-primary-600 hover:text-primary-700">
@@ -42,11 +42,11 @@ export default function Terms() {
 
             <Section title="2. Our services">
               <p>
-                LabEasy is a healthcare facilitation platform. We enable you to discover and book
+                Medis is a healthcare facilitation platform. We enable you to discover and book
                 in-clinic doctor appointments, video consultations, diagnostic tests, health
                 packages and home sample collection, and to receive digital reports and
                 prescriptions. Medical services themselves are provided by independent, verified
-                doctors and NABL-accredited partner laboratories. LabEasy does not itself practise
+                doctors and NABL-accredited partner laboratories. Medis does not itself practise
                 medicine and does not interfere with the clinical judgement of healthcare
                 professionals.
               </p>
@@ -67,7 +67,7 @@ export default function Terms() {
               <ul className="list-disc space-y-2 pl-5">
                 <li>
                   A booking is confirmed only after successful payment and an on-screen or email
-                  confirmation from LabEasy.
+                  confirmation from Medis.
                 </li>
                 <li>
                   Appointments cancelled at least 2 hours before the scheduled slot are refunded in
@@ -105,7 +105,7 @@ export default function Terms() {
               <p>
                 Prices for consultations, tests and packages are shown inclusive of applicable taxes
                 unless stated otherwise. Payments are processed by secure, PCI-DSS-compliant payment
-                gateways; LabEasy does not store your full card details. Where pay-after-collection
+                gateways; Medis does not store your full card details. Where pay-after-collection
                 is offered for home visits, payment is due at the time of sample collection.
                 Discounted prices shown against an MRP reflect our negotiated partner rates and may
                 change without notice, though confirmed bookings are always honoured at the price
@@ -127,9 +127,9 @@ export default function Terms() {
 
             <Section title="8. Intellectual property">
               <p>
-                The LabEasy name, logo, design, software and all content we create — including test
+                The Medis name, logo, design, software and all content we create — including test
                 descriptions, package curation and articles — are the intellectual property of
-                LabEasy or its licensors. You may view and download materials for personal,
+                Medis or its licensors. You may view and download materials for personal,
                 non-commercial use. Reproducing, redistributing or creating derivative works from
                 Platform content without our written permission is prohibited. Your medical reports
                 remain your records; this clause does not restrict your use of your own health data.
@@ -138,9 +138,9 @@ export default function Terms() {
 
             <Section title="9. Limitation of liability">
               <p>
-                To the maximum extent permitted by law, LabEasy&rsquo;s aggregate liability arising
+                To the maximum extent permitted by law, Medis&rsquo;s aggregate liability arising
                 from or relating to the Platform is limited to the amount you paid for the specific
-                booking giving rise to the claim. LabEasy is not liable for indirect or
+                booking giving rise to the claim. Medis is not liable for indirect or
                 consequential losses, or for acts and omissions of independent doctors and partner
                 laboratories in the course of clinical care, though we will always assist you in
                 resolving grievances with our partners. Nothing in these terms limits liability that

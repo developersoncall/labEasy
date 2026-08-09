@@ -8,7 +8,7 @@ import { COUNTRIES, DEFAULT_COUNTRY } from './countries.js';
  * load — we seed it from a localStorage cache to avoid a flash, and
  * SettingsContext confirms/updates it from the `country_code` DB setting.
  */
-const CACHE_KEY = 'labeasy_country';
+const CACHE_KEY = 'medis_country';
 
 const readCache = () => {
   try {

@@ -49,7 +49,7 @@ export default function Specialties() {
           <SectionHeading
             eyebrow="Departments"
             title="Browse by specialty"
-            subtitle="Every doctor on LabEasy is credential-verified. Pick a department to see available specialists, fees and next slots."
+            subtitle="Every doctor on Medis is credential-verified. Pick a department to see available specialists, fees and next slots."
           />
 
           {loading ? (
