@@ -19,15 +19,36 @@ const TestFormField = ({ label, field, type='text', options, full, form, errors,
 
 const TestFormModal = ({ test, categories = [], onClose, onSave }) => {
   const isEdit = !!test;
-  const [form, setForm] = useState(test || { name:'', category: categories[0]?.name || 'Blood', price:'', time:'', available:true, popular:false, fasting:'No fasting required', prep:'None', description:'' });
+  const SAMPLE_TYPE_OPTIONS = ['Blood', 'Urine', 'Sputum', 'Saliva', 'Stool', 'Other'];
+  const initialSampleType = test?.sampleType || 'Blood';
+  const isPreset = ['Blood', 'Urine', 'Sputum', 'Saliva', 'Stool'].includes(initialSampleType);
+  const [sampleTypeSelect, setSampleTypeSelect] = useState(isPreset ? initialSampleType : 'Other');
+  const [customSampleType, setCustomSampleType] = useState(isPreset ? '' : initialSampleType);
+
+  const [form, setForm] = useState(test || { name:'', category: categories[0]?.name || 'Blood', price:'', time:'', available:true, popular:false, fasting:'No fasting required', prep:'None', description:'', sampleType: 'Blood' });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const set = (k,v) => setForm(p=>({...p,[k]:v}));
+
+  const handleSelectSampleTypeChange = (val) => {
+    setSampleTypeSelect(val);
+    if (val !== 'Other') {
+      set('sampleType', val);
+    } else {
+      set('sampleType', customSampleType);
+    }
+  };
+
+  const handleCustomSampleTypeChange = (val) => {
+    setCustomSampleType(val);
+    set('sampleType', val);
+  };
 
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = 'Test name required';
     if (!form.price || isNaN(form.price)) e.price = 'Valid price required';
+    if (sampleTypeSelect === 'Other' && !customSampleType.trim()) e.sampleType = 'Custom sample type required';
     setErrors(e); return !Object.keys(e).length;
   };
 
@@ -60,6 +81,16 @@ const TestFormModal = ({ test, categories = [], onClose, onSave }) => {
           <TestFormField label="Category" field="category" options={categories.map(c=>c.name)}  form={form} errors={errors} onChange={set} />
           <TestFormField label={`Price (${currencySymbol()}) *`} field="price" type="number"  form={form} errors={errors} onChange={set} />
           <TestFormField label="Turnaround Time" field="time"  form={form} errors={errors} onChange={set} />
+          <Field label="Sample Type" error={errors.sampleType}>
+            <select className="form-select" value={sampleTypeSelect} onChange={e=>handleSelectSampleTypeChange(e.target.value)}>
+              {SAMPLE_TYPE_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
+            </select>
+          </Field>
+          {sampleTypeSelect === 'Other' && (
+            <Field label="Specify Sample Type *" error={errors.sampleType}>
+              <input className={`form-input${errors.sampleType?' input-error':''}`} type="text" value={customSampleType} onChange={e=>handleCustomSampleTypeChange(e.target.value)} placeholder="e.g. Swab, Hair, Saliva" />
+            </Field>
+          )}
         </div>
         <div className="form-full">
           <Field label="Description">
@@ -115,6 +146,7 @@ const ViewTest = ({ test, onClose, onEdit }) => (
       </div>
       {test.description && <div className="test-desc"><strong>Description:</strong> {test.description}</div>}
       <div className="test-prep-card">
+        <div className="prep-row"><span className="prep-icon">🧪</span><div><div className="prep-label">Sample Type</div><div>{test.sampleType || 'Blood'}</div></div></div>
         <div className="prep-row"><span className="prep-icon">🍽️</span><div><div className="prep-label">Fasting</div><div>{test.fasting}</div></div></div>
         <div className="prep-row"><span className="prep-icon">📋</span><div><div className="prep-label">Preparation</div><div>{test.prep}</div></div></div>
       </div>
@@ -294,7 +326,7 @@ const Tests = ({ initialTab = 'tests' }) => {
                       <div className="test-cat-dot" style={{background:cats.find(c=>c.name===t.category)?.color||'#1a6fc4'}}/>
                       <div>
                         <div className="user-name">{t.name}</div>
-                        <div className="user-id">{t.id}</div>
+                        <div className="user-id">{t.id} · {t.sampleType || 'Blood'}</div>
                       </div>
                     </div>
                   </td>

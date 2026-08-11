@@ -2,7 +2,7 @@
 export default function SectionHeading({ eyebrow, title, subtitle, align = 'center' }) {
   const alignClass = align === 'left' ? 'text-left items-start' : 'text-center items-center';
   return (
-    <div className={`mb-10 flex flex-col gap-3 ${alignClass}`}>
+    <div className={`mb-8 flex flex-col gap-3 ${alignClass}`}>
       {eyebrow && (
         <span className="badge bg-primary-50 text-primary-700 uppercase tracking-wide">{eyebrow}</span>
       )}

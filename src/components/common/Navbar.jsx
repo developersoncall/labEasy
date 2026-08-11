@@ -41,6 +41,18 @@ export default function Navbar() {
     navigate('/');
   };
 
+  const handleLogoClick = () => {
+    if (window.location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleNavLinkClick = (path) => {
+    if (path === '/' && window.location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const displayName = user?.user_metadata?.full_name || user?.email || 'Account';
   const avatarUrl = user?.user_metadata?.avatar_url;
 
@@ -48,7 +60,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur">
       <nav className="container-custom flex h-20 items-center justify-between gap-4" aria-label="Main navigation">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2" aria-label={`${brandName} home`}>
+        <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2" aria-label={`${brandName} home`}>
           <img src="/logo.png" alt={brandName} className="h-14 w-auto" width="56" height="56" />
         </Link>
 
@@ -58,6 +70,7 @@ export default function Navbar() {
             <li key={link.path}>
               <NavLink
                 to={link.path}
+                onClick={() => handleNavLinkClick(link.path)}
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-2 text-sm font-medium transition ${
                     isActive ? 'text-primary-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -187,7 +200,10 @@ export default function Navbar() {
                 <li key={link.path}>
                   <NavLink
                     to={link.path}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      handleNavLinkClick(link.path);
+                    }}
                     className={({ isActive }) =>
                       `block rounded-lg px-3 py-2.5 text-sm font-medium ${
                         isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50'

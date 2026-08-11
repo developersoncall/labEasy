@@ -55,9 +55,7 @@ export default function DiagnosticTests() {
       <section className="border-b border-gray-100 bg-white">
         <div className="container-custom py-10 md:py-14">
           <SectionHeading
-            eyebrow="Diagnostics"
             title="Book Lab Tests Online"
-            subtitle="Transparent pricing, NABL-accredited processing and reports delivered straight to your dashboard."
           />
 
           <div className="mx-auto max-w-2xl">
@@ -78,7 +76,7 @@ export default function DiagnosticTests() {
           </div>
 
           <div
-            className="mt-6 flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="mt-6 flex gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             role="group"
             aria-label="Filter tests by category"
           >
@@ -106,7 +104,7 @@ export default function DiagnosticTests() {
       </section>
 
       {/* ---------- info strip ---------- */}
-      <section className="bg-primary-50/60">
+      {/* <section className="bg-primary-50/60">
         <div className="container-custom grid grid-cols-1 gap-4 py-6 sm:grid-cols-3">
           {INFO_POINTS.map(({ icon: Icon, title, text }) => (
             <div key={title} className="flex items-start gap-3">
@@ -120,10 +118,10 @@ export default function DiagnosticTests() {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* ---------- results grid ---------- */}
-      <section className="section-padding">
+      <section className="pt-6 md:pt-8 pb-14 md:pb-20">
         <div className="container-custom">
           {loading ? (
             <SkeletonGrid count={6} lines={3} />

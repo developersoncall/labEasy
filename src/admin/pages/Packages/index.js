@@ -73,6 +73,7 @@ const PackageFormModal = ({ pkg, tests = [], onClose, onSave }) => {
             <option value="Infections">Infections</option>
             <option value="Thyroid">Thyroid</option>
             <option value="Couples">Couples</option>
+            <option value="Others">Others</option>
           </select></Field>
           <Field label="Ideal For"><input className="form-input" value={form.idealFor||''} onChange={e=>set('idealFor',e.target.value)} placeholder="e.g. Women 25+ · Hormone & vitality check" /></Field>
           <Field label="Report Turnaround (Hours)"><input className="form-input" type="number" value={form.reportHours||''} onChange={e=>set('reportHours',e.target.value)} placeholder="e.g. 24" /></Field>

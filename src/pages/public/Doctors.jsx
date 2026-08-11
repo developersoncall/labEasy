@@ -282,7 +282,7 @@ export default function Doctors() {
       </section>
 
       {/* ---------- listing ---------- */}
-      <section className="section-padding">
+      <section className="pt-6 md:pt-8 pb-14 md:pb-20">
         <div className="container-custom">
           <div className="flex flex-col gap-8 lg:flex-row">
             {/* filter sidebar (desktop) */}

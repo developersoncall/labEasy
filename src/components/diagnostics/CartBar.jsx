@@ -18,11 +18,11 @@ export default function CartBar() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
+          initial={{ x: '-50%', y: 80, opacity: 0 }}
+          animate={{ x: '-50%', y: 0, opacity: 1 }}
+          exit={{ x: '-50%', y: 80, opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2"
+          className="fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-xl"
         >
           <div className="flex items-center justify-between gap-4 rounded-2xl bg-gray-900 px-5 py-3.5 text-white shadow-card-hover">
             <div className="flex items-center gap-3">

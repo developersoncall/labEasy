@@ -72,6 +72,7 @@ const testFromRow = (r) => ({
   available: r.is_active !== false, popular: !!r.is_popular,
   fasting: r.fasting_required ? 'Fasting required' : 'No fasting required',
   prep: r.prep || 'None', description: r.description || '',
+  sampleType: r.sample_type || 'Blood',
 });
 const testToRow = (t) => ({
   name: t.name, category: t.category, price: Number(t.price) || 0, mrp: Number(t.mrp || t.price) || 0,

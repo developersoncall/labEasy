@@ -29,15 +29,21 @@ const SERVICES_LINKS = [
   { label: 'Contact Us', to: '/contact' },
 ];
 
-/** Global site footer. */
 export default function Footer() {
   const { socialLinks, contactPhone, contactEmail, contactAddress, contactHours, brandName, brandTagline } = useSettings();
+
+  const handleLogoClick = () => {
+    if (window.location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer className="mt-auto bg-gray-900 text-gray-300">
       <div className="container-custom grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         {/* Brand */}
         <div>
-          <Link to="/" className="flex items-center gap-2" aria-label={`${brandName} home`}>
+          <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2" aria-label={`${brandName} home`}>
             <img src="/logo.png" alt={brandName} className="h-16 w-auto" width="64" height="64" />
           </Link>
           <p className="mt-4 text-sm leading-relaxed text-gray-400">
