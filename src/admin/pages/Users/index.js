@@ -459,7 +459,7 @@ const Users = ({ adminEmail }) => {
     ].join('\n');
     const a = document.createElement('a');
     a.href = 'data:text/csv,' + encodeURIComponent(csv);
-    a.download = 'medis-users.csv';
+    a.download = 'labeasy-users.csv';
     a.click();
     toast_('Exported CSV');
   };

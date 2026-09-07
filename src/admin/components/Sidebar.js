@@ -1,10 +1,19 @@
 import React from 'react';
 import { useSettings } from '../../context/SettingsContext.jsx';
+import BrandMark from '../../components/common/BrandMark.jsx';
 
 // Only functional destinations. `badgeKey` pulls a live count from `counts`.
 const NAV = [
-  { group:'Overview', items:[{key:'dashboard',icon:'📊',label:'Dashboard'}]},
-  { group:'People', items:[{key:'users',icon:'👥',label:'Manage Users'},{key:'doctors',icon:'🩺',label:'Manage Doctors'}]},
+  { group:'Overview', items:[
+    {key:'dashboard',icon:'📊',label:'Dashboard'},
+    {key:'today',icon:'📅',label:'Today'},
+  ]},
+  { group:'Laboratories', items:[
+    {key:'labs',icon:'🏥',label:'Manage Labs',badgeKey:'labsPending'},
+  ]},
+  // Manage Users / Manage Doctors are intentionally not in the nav: the
+  // platform is lab-first for now, so people are managed by each lab. The
+  // pages themselves still exist and work if the nav entry is put back.
   { group:'Catalog', items:[
     {key:'tests',icon:'🔬',label:'Manage Tests'},
     {key:'categories',icon:'🗂️',label:'Test Categories'},
@@ -13,10 +22,8 @@ const NAV = [
   ]},
   { group:'Bookings', items:[
     {key:'bookings',icon:'🧪',label:'Lab Bookings',badgeKey:'bookings'},
-    {key:'appointments',icon:'🩺',label:'Doctor Appointments',badgeKey:'appointments'},
   ]},
   { group:'Reports', items:[{key:'reports',icon:'📄',label:'Reports',badgeKey:'reports'}]},
-  { group:'Finance', items:[{key:'payments',icon:'💵',label:'Cash Collection'}]},
   { group:'Analytics', items:[{key:'analytics',icon:'📈',label:'Analytics & Reports'}]},
   { group:'System', items:[{key:'settings',icon:'⚙️',label:'App Settings'},{key:'support',icon:'🆘',label:'Support Tickets',badgeKey:'support'}]},
 ];
@@ -29,7 +36,7 @@ const Sidebar = ({ currentPage, onNavigate, open, onClose, onLogout, onViewWebsi
 
     <aside className={`sidebar${open ? ' sidebar-open' : ''}`}>
       <div className="sidebar-brand">
-        <img src="/logo.png" alt={brandName} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+        <BrandMark size={44} title={brandName} className="shrink-0" />
         <div>
           <div className="sidebar-brand-name">{brandName}</div>
           <div className="sidebar-brand-sub">Admin Panel</div>

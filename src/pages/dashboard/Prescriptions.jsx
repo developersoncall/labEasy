@@ -65,7 +65,7 @@ export default function Prescriptions() {
                     <FaPrescriptionBottleAlt size={18} aria-hidden="true" />
                   </span>
                   <div>
-                    <p className="font-semibold text-gray-900">{p.doctor_name || 'Medis Doctor'}</p>
+                    <p className="font-semibold text-gray-900">{p.doctor_name || 'Lab Easy Doctor'}</p>
                     <p className="text-xs font-medium text-primary-600">{p.specialty || 'General Physician'}</p>
                   </div>
                 </div>

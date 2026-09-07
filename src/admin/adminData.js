@@ -236,7 +236,7 @@ const BOOKING_MSG = {
   sample_collected: 'Your sample has been collected and sent to the lab.',
   processing: 'Your sample is being processed at the lab.',
   report_ready: 'Good news — your report is ready to view in your dashboard.',
-  completed: 'Your booking is complete. Thank you for choosing Medis!',
+  completed: 'Your booking is complete. Thank you for choosing Lab Easy!',
   cancelled: 'Your lab booking has been cancelled. Any payment will be refunded in 3-5 working days.',
 };
 async function notifyUser(userId, title, message, type = 'info') {
@@ -266,7 +266,7 @@ export const bookingsData = {
 /* ══════════════ APPOINTMENTS (appointments) ══════════════ */
 const APPT_MSG = {
   confirmed: 'Your doctor appointment is confirmed. See you soon!',
-  completed: 'Your consultation is complete. Thank you for choosing Medis!',
+  completed: 'Your consultation is complete. Thank you for choosing Lab Easy!',
   cancelled: 'Your appointment has been cancelled. Any payment will be refunded in 3-5 working days.',
 };
 const apptFromRow = (a) => ({
@@ -355,7 +355,7 @@ const reportFromRow = (r) => ({
   bookingId: r.booked_tests?.booking_ref || (r.booking_id ? `#${String(r.booking_id).slice(0, 6)}` : '—'),
   bookingRawId: r.booking_id || null,   // raw UUID, used to match a booking to its report
   patient: r.notes || '—', test: r.title || 'Report',
-  date: fmtDate(r.created_at), uploadedBy: r.signed_by || 'Medis',
+  date: fmtDate(r.created_at), uploadedBy: r.signed_by || 'Lab Easy',
   status: r.is_verified ? 'verified' : (r.status || 'pending'), file: r.report_url || '',
 });
 // Map the screen's status labels onto the DB's report_status enum.
@@ -551,13 +551,14 @@ export const notificationsData = {
 
 /* ══════════════ SIDEBAR BADGE COUNTS ══════════════ */
 export async function sidebarCounts() {
-  const [bk, ap, rp, tk] = await Promise.all([
+  const [bk, ap, rp, tk, lb] = await Promise.all([
     supabase.from('booked_tests').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(r => r.count || 0).catch(() => 0),
     supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(r => r.count || 0).catch(() => 0),
     supabase.from('medical_reports').select('id', { count: 'exact', head: true }).eq('is_verified', false).then(r => r.count || 0).catch(() => 0),
     supabase.from('contact_messages').select('id', { count: 'exact', head: true }).neq('status', 'resolved').then(r => r.count || 0).catch(() => 0),
+    supabase.from('labs').select('id', { count: 'exact', head: true }).eq('status', 'pending').then(r => r.count || 0).catch(() => 0),
   ]);
-  return { bookings: bk, appointments: ap, reports: rp, support: tk };
+  return { bookings: bk, appointments: ap, reports: rp, support: tk, labsPending: lb };
 }
 
 /* ══════════════ CSV EXPORT ══════════════ */
@@ -654,7 +655,7 @@ const blogFromRow = (r) => ({
   slug: r.slug || '',
   category: r.category || 'General',
   authorName: r.author_name || 'Admin',
-  authorRole: r.author_role || 'Medis Team',
+  authorRole: r.author_role || 'Lab Easy Team',
   coverImageUrl: r.cover_image_url || '',
   publishedAt: r.published_at || '',
   readMinutes: r.read_minutes || 5,
@@ -669,7 +670,7 @@ const blogToRow = (b) => ({
   slug: b.slug || slugify(b.title),
   category: b.category || 'General',
   author_name: b.authorName || 'Admin',
-  author_role: b.authorRole || 'Medis Team',
+  author_role: b.authorRole || 'Lab Easy Team',
   cover_image_url: b.coverImageUrl || '',
   published_at: b.publishedAt || new Date().toISOString().split('T')[0],
   read_minutes: Number(b.readMinutes) || 5,

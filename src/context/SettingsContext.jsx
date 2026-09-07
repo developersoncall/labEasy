@@ -56,6 +56,10 @@ export function SettingsProvider({ children }) {
     contactAddress: settings.contact_address ?? '',
     contactHours: settings.contact_hours ?? '',
     socialLinks,
+    // Platform mode flags (see newSQL.html section 14). While the public
+    // portal is off, patient-facing routes redirect to the informational home.
+    publicPortalEnabled: settings.public_portal_enabled === true,
+    labRegistrationOpen: settings.lab_registration_open !== false,
     // active country (drives currency, phone rules, cities)
     countryCode: getCountry().code,
     countryName: getCountry().name,

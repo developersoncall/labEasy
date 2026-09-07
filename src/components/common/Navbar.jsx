@@ -7,6 +7,7 @@ import { NAV_LINKS } from '../../constants/index.js';
 import useAuth from '../../hooks/useAuth.js';
 import { useSettings } from '../../context/SettingsContext.jsx';
 import { notificationService } from '../../services/notificationService.js';
+import BrandMark from './BrandMark.jsx';
 
 /** Sticky site header with responsive mobile menu and auth-aware actions. */
 export default function Navbar() {
@@ -61,7 +62,7 @@ export default function Navbar() {
       <nav className="container-custom flex h-20 items-center justify-between gap-4" aria-label="Main navigation">
         {/* Logo */}
         <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2" aria-label={`${brandName} home`}>
-          <img src="/logo.png" alt={brandName} className="h-14 w-auto" width="56" height="56" />
+          <BrandMark size={48} title={brandName} />
         </Link>
 
         {/* Desktop links */}

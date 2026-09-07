@@ -1,0 +1,23 @@
+/* TODAY — the cross-lab monitoring board. Scoped under .admin-root like every
+   other admin stylesheet. */
+
+.admin-root .today-stats { grid-template-columns: repeat(5, 1fr); }
+.admin-root .today-date { width: 170px; }
+
+.admin-root .today-lab { margin-bottom: 20px; }
+.admin-root .today-lab .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-root .today-lab-ref { font-size: 12px; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; margin-top: 2px; }
+
+.admin-root .today-ref { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; color: var(--accent-dark, #0369a1); font-weight: 600; }
+.admin-root .today-patient { font-weight: 600; }
+.admin-root .today-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.admin-root .today-tests { max-width: 240px; }
+.admin-root .today-prog { width: 90px; }
+
+@media (max-width: 1200px) {
+  .admin-root .today-stats { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px) {
+  .admin-root .today-stats { grid-template-columns: repeat(2, 1fr); }
+  .admin-root .today-date { width: 100%; }
+}

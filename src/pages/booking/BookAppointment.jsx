@@ -181,7 +181,7 @@ export default function BookAppointment() {
             <EmptyState
               icon={FaUserMd}
               title="Doctor not found"
-              message="The doctor you are trying to book may no longer be available on Medis. Browse our directory to find another specialist."
+              message="The doctor you are trying to book may no longer be available on Lab Easy. Browse our directory to find another specialist."
               actionLabel="Browse Doctors"
               actionTo="/doctors"
             />

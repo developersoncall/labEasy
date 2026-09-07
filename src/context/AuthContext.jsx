@@ -7,11 +7,24 @@ import { supabase } from '../supabase/supabase.js';
  * Supabase-only: real email/password auth backed by a session listener.
  * If Supabase is not configured, every action throws — the app renders
  * the setup notice instead of the routes until credentials are added.
+ *
+ * On top of the session it resolves the caller's *identity in the platform*
+ * once per sign-in and shares it with the whole app:
+ *
+ *   role    admin | lab_admin | receptionist | tester | reportist | patient
+ *   lab     the row from `labs` for every lab-side role (null for admin)
+ *
+ * Everything that gates a screen reads these — the same values the database
+ * RLS policies use, so the UI and the backend can never disagree about who
+ * someone is.
  */
 const AuthContext = createContext(null);
 
 const NOT_CONFIGURED_MESSAGE =
   'Supabase is not configured. Add your project credentials to .env';
+
+/** Roles that belong to a laboratory rather than to the platform. */
+export const LAB_ROLES = ['lab_admin', 'receptionist', 'tester', 'reportist'];
 
 /** Throws when the Supabase client is missing (credentials not set). */
 function requireSupabase() {
@@ -21,29 +34,57 @@ function requireSupabase() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [lab, setLab] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [roleChecked, setRoleChecked] = useState(false);
+  const [identityError, setIdentityError] = useState('');
 
-  // Look up whether the signed-in user has the admin role.
-  const checkAdminRole = useCallback(async (u) => {
+  // Resolve profile (role + lab_id) and, for lab accounts, the lab itself.
+  //
+  // Deliberately `select('*')`: naming the newer columns explicitly made the
+  // whole query fail with "column lab_id does not exist" on a database where
+  // newSQL.html has not been run yet, which left every account looking
+  // role-less and bounced admins straight back out of /admin.
+  const loadIdentity = useCallback(async (u) => {
     if (!supabase || !u) {
-      setIsAdmin(false);
+      setProfile(null);
+      setLab(null);
+      setIdentityError('');
       setRoleChecked(true);
       return;
     }
+    setIdentityError('');
+    let prof = null;
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
-        .select('role')
+        .select('*')
         .eq('user_id', u.id)
         .maybeSingle();
-      setIsAdmin(data?.role === 'admin');
-    } catch {
-      setIsAdmin(false);
-    } finally {
-      setRoleChecked(true);
+      if (error) throw error;
+      prof = data || null;
+      setProfile(prof);
+      if (!prof) setIdentityError('No profile row exists for this account.');
+    } catch (err) {
+      setProfile(null);
+      setIdentityError(err?.message || 'Could not read your account profile.');
+      console.error('[auth] profile lookup failed:', err?.message || err);
     }
+
+    // The lab lookup is separate on purpose: before the migration runs the
+    // labs table does not exist, and that must not wipe out a valid profile.
+    try {
+      const query = supabase.from('labs').select('*');
+      const { data: labRow } = prof?.lab_id
+        ? await query.eq('id', prof.lab_id).maybeSingle()
+        : await query.eq('owner_user_id', u.id).maybeSingle();
+      setLab(labRow || null);
+    } catch {
+      setLab(null);
+    }
+
+    setRoleChecked(true);
   }, []);
 
   // ---------- bootstrap the session on first load ----------
@@ -57,27 +98,35 @@ export function AuthProvider({ children }) {
       const sessionUser = data?.session?.user ?? null;
       setUser(sessionUser);
       setLoading(false);
-      checkAdminRole(sessionUser);
+      loadIdentity(sessionUser);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       const sessionUser = session?.user ?? null;
       setUser(sessionUser);
       setRoleChecked(false);
-      checkAdminRole(sessionUser);
+      loadIdentity(sessionUser);
     });
     return () => sub?.subscription?.unsubscribe();
-  }, [checkAdminRole]);
+  }, [loadIdentity]);
+
+  /** Re-read role/lab — used after registering a lab or changing a profile. */
+  const refreshIdentity = useCallback(async () => {
+    setRoleChecked(false);
+    await loadIdentity(user);
+  }, [loadIdentity, user]);
 
   // ---------- actions ----------
-  const register = useCallback(async ({ fullName, email, phone, password }) => {
+  const register = useCallback(async ({ fullName, email, phone, password, signupRole }) => {
     const client = requireSupabase();
     const { data, error } = await client.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, phone } },
+      // signup_role is read by the handle_new_user() trigger. Only 'lab_admin'
+      // is honoured there — every other role has to come from a staff invite.
+      options: { data: { full_name: fullName, phone, signup_role: signupRole || '' } },
     });
     if (error) throw error;
-    return { user: data.user, needsVerification: !data.session };
+    return { user: data.user, session: data.session, needsVerification: !data.session };
   }, []);
 
   const login = useCallback(async ({ email, password }) => {
@@ -92,6 +141,8 @@ export function AuthProvider({ children }) {
     const client = requireSupabase();
     await client.auth.signOut();
     setUser(null);
+    setProfile(null);
+    setLab(null);
   }, []);
 
   const forgotPassword = useCallback(async (email) => {
@@ -120,12 +171,27 @@ export function AuthProvider({ children }) {
     return res?.user;
   }, []);
 
+  const role = profile?.role || null;
+  const isLabRole = LAB_ROLES.includes(role);
+
   const value = {
     user,
+    profile,
+    lab,
+    role,
+    labId: profile?.lab_id || lab?.id || null,
     loading,
     isAuthenticated: !!user,
-    isAdmin,
+    isAdmin: role === 'admin',
+    isLabRole,
+    isLabAdmin: role === 'lab_admin',
+    // A lab account can only work once the platform admin has approved the lab
+    // and the account itself is still active.
+    labApproved: lab?.status === 'approved',
+    accountActive: !profile || profile.status === 'active',
     roleChecked,
+    identityError,
+    refreshIdentity,
     register,
     login,
     logout,

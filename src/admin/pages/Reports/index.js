@@ -26,16 +26,6 @@ const Reports = ({ onChange }) => {
     return true;
   });
 
-  const verifyReport = async id => {
-    try { await reportsData.setStatus(id,'verified'); setReports(prev=>prev.map(r=>r.id===id?{...r,status:'verified'}:r)); toast_('Report verified'); onChange?.(); }
-    catch (e) { toast_(e.message || 'Update failed','error'); }
-  };
-
-  const flagReport = async id => {
-    try { await reportsData.setStatus(id,'flagged'); setReports(prev=>prev.map(r=>r.id===id?{...r,status:'flagged'}:r)); toast_('Report flagged for review','warning'); }
-    catch (e) { toast_(e.message || 'Update failed','error'); }
-  };
-
   const handleUpload = async form => {
     try {
       const saved = await reportsData.create(form);
@@ -61,12 +51,9 @@ const Reports = ({ onChange }) => {
   return (
     <div>
       <div className="page-header">
-        <div><div className="ph-title">Manage Reports</div><div className="ph-sub">{reports.filter(r=>r.status==='pending').length} pending validation</div></div>
-        <div className="ph-actions"><button className="btn btn-primary" onClick={()=>setUploadOpen(true)}>📤 Upload Report</button></div>
+        <div><div className="ph-title">Manage Reports</div><div className="ph-sub">{reports.filter(r=>r.status==='pending').length} awaiting the lab's verification</div></div>
       </div>
-      {reports.filter(r=>r.status==='pending').length>0 && (
-        <div className="alert alert-yellow">⚠️ {reports.filter(r=>r.status==='pending').length} report(s) are pending verification. Please review.</div>
-      )}
+      <div className="alert alert-blue">👁 Read-only. Verifying and closing a report is the laboratory's job — this view is for monitoring across every lab.</div>
       <div className="stat-row">
         {[
           {i:'📄',c:'#1a6fc4',l:'Total Reports',n:reports.length},
@@ -102,10 +89,6 @@ const Reports = ({ onChange }) => {
                 <td>
                   <div className="actions">
                     <button className="btn btn-secondary btn-sm btn-icon" title="View PDF" onClick={()=>viewReport(r)}>👁</button>
-                    {r.status==='pending' && <button className="btn btn-sm btn-primary" onClick={()=>verifyReport(r.id)}>✅ Verify</button>}
-                    {r.status==='verified' && <button className="btn btn-sm btn-secondary" onClick={()=>flagReport(r.id)}>🚩 Flag</button>}
-                    {r.status==='flagged' && <button className="btn btn-sm btn-primary" onClick={()=>verifyReport(r.id)}>✅ Clear</button>}
-                    <button className="btn btn-secondary btn-sm btn-icon del-btn" onClick={()=>setDel(r)}>🗑</button>
                   </div>
                 </td>
               </tr>

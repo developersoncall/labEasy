@@ -13,7 +13,7 @@ const STATUS_LABELS = {all:'All',pending:'Pending',confirmed:'Confirmed',sample_
 const PIPELINE = ['pending','confirmed','sample_collected','processing','report_ready','completed'];
 const NEXT_LABEL = { confirmed:'✓ Confirm', sample_collected:'🧪 Sample Collected', processing:'⚙ Processing', report_ready:'📤 Deliver Report', completed:'📤 Deliver Report' };
 
-const ViewBooking = ({ booking, onClose, onEdit }) => (
+const ViewBooking = ({ booking, onClose }) => (
   <Modal size="md" onClose={onClose}>
     <div className="modal-header">
       <div>
@@ -48,7 +48,6 @@ const ViewBooking = ({ booking, onClose, onEdit }) => (
     </div>
     <div className="modal-footer">
       <button className="btn btn-secondary" onClick={onClose}>Close</button>
-      <button className="btn btn-primary" onClick={()=>{onClose();onEdit(booking);}}>✏️ Edit Status</button>
     </div>
   </Modal>
 );
@@ -244,7 +243,7 @@ const Bookings = ({ onChange }) => {
   const handleExport = () => {
     const headers = ['Booking ID','Patient','Test/Package','Type','Date','Slot','Amount','Status','Phlebotomist'];
     const rows = filtered.map(b => [b.ref, b.user, b.test, b.type, b.date, b.slot, b.amount, b.status, b.phlebotomist]);
-    exportCSV('medis-bookings.csv', headers, rows);
+    exportCSV('labeasy-bookings.csv', headers, rows);
     toast_('Exported CSV');
   };
 
@@ -314,30 +313,13 @@ const Bookings = ({ onChange }) => {
                 <td><Badge status={b.status} /></td>
                 <td>
                   <div className="actions">
-                    {hasReport(b) ? (
-                      /* Report uploaded → View + Edit only (no upload, no complete) */
-                      <>
-                        <button className="btn btn-sm btn-secondary" title="View report" onClick={()=>viewReport(b)}>👁 Report</button>
-                        <button className="btn btn-sm btn-secondary" title="Edit / replace report" onClick={()=>setUploadFor({ booking: b, report: reportFor(b) })}>✏️ Edit Report</button>
-                      </>
-                    ) : b.status==='cancelled' ? null
-                      : PIPELINE.indexOf(b.status) >= 0 && PIPELINE.indexOf(b.status) < PIPELINE.length-1 ? (
-                        /* In progress → one button to the next stage. At "Report Ready" it opens upload → auto-completes. */
-                        <button className="btn btn-sm btn-primary" title="Next step" onClick={()=>advance(b)}>
-                          {NEXT_LABEL[PIPELINE[PIPELINE.indexOf(b.status)+1]]}
-                        </button>
-                      ) : (
-                        /* Completed with no downloadable report → allow delivering one */
-                        <button className="btn btn-sm btn-primary" title="Deliver report" onClick={()=>setUploadFor({ booking: b, report: null })}>📤 Deliver Report</button>
-                      )}
-
-                    <button className="btn btn-secondary btn-sm btn-icon" title="View booking" onClick={()=>setView(b)}>👁</button>
-                    <button className="btn btn-secondary btn-sm btn-icon" title="Edit booking" onClick={()=>setEdit(b)}>✏️</button>
-                    {b.status!=='cancelled' && b.status!=='completed' && !hasReport(b) && (
-                      <button className="btn btn-sm btn-danger" title={b.status==='pending'?'Reject request':'Cancel'} onClick={()=>setCancel(b)}>
-                        {b.status==='pending'?'Reject':'Cancel'}
-                      </button>
+                    {/* Read-only. Moving a booking along, and uploading or
+                        replacing its report, belongs to the laboratory that
+                        owns it — the platform admin watches, it does not act. */}
+                    {hasReport(b) && (
+                      <button className="btn btn-sm btn-secondary" title="View report" onClick={()=>viewReport(b)}>👁 Report</button>
                     )}
+                    <button className="btn btn-secondary btn-sm btn-icon" title="View booking" onClick={()=>setView(b)}>👁</button>
                   </div>
                 </td>
               </tr>
@@ -348,7 +330,7 @@ const Bookings = ({ onChange }) => {
       )}
 
       {uploadFor && <UploadReportModal booking={uploadFor.booking} existing={uploadFor.report} onClose={()=>setUploadFor(null)} onUpload={handleUploadReport} onEmail={handleEmailReport} onWhatsApp={handleWhatsAppReport} />}
-      {view && <ViewBooking booking={view} onClose={()=>setView(null)} onEdit={b=>{setView(null);setEdit(b);}} />}
+      {view && <ViewBooking booking={view} onClose={()=>setView(null)} />}
       {edit && <EditBookingModal booking={edit} onClose={()=>setEdit(null)} onSave={handleSave} />}
       {cancel && <ConfirmModal title="Cancel Booking?" message={`Cancel booking ${cancel.id} for ${cancel.user}? The patient will be notified.`} confirmLabel="Yes, Cancel" danger onConfirm={()=>handleCancel(cancel.id)} onClose={()=>setCancel(null)} />}
       {toast && <Toast msg={toast.msg} type={toast.type} onDone={()=>setToast(null)} />}

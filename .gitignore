@@ -34,3 +34,21 @@ dist-ssr/
 # Firebase
 .firebase/
 firebase-debug.log*
+
+# Build & tooling caches
+.vite/
+coverage/
+*.tsbuildinfo
+.eslintcache
+
+# Deploy targets
+.vercel
+.netlify
+
+# OS noise
+Thumbs.db
+desktop.ini
+
+# Local scratch work (never commit credentials or dumps)
+scratch/
+*.local.sql

@@ -25,7 +25,7 @@ export const CONSULTATION_TYPES = [
   { id: 'video', label: 'Video Consultation', description: 'Consult online over a secure video call' },
 ];
 
-// Aligned with the Medis admin panel workflow
+// Aligned with the Lab Easy admin panel workflow
 export const APPOINTMENT_STATUS = {
   PENDING: 'pending',
   CONFIRMED: 'confirmed',
@@ -65,7 +65,7 @@ export const STATUS_COLORS = {
 
 export const COLLECTION_TYPES = [
   { id: 'home', label: 'Home Sample Collection', description: 'A certified phlebotomist visits your home' },
-  { id: 'lab', label: 'Lab Visit', description: 'Walk in to the nearest Medis centre' },
+  { id: 'lab', label: 'Lab Visit', description: 'Walk in to the nearest partner laboratory' },
 ];
 
 export const TIME_SLOT_GROUPS = {

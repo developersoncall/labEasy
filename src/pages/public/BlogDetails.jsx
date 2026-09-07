@@ -202,7 +202,7 @@ export default function BlogDetails() {
                       <FaShareAlt size={10} /> SHARE:
                     </span>
                     <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(`Check out this health article at Medis: "${blog.title}"`)}`}
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(`Check out this health article at Lab Easy: "${blog.title}"`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600 border border-gray-100 hover:border-blue-200 transition"
@@ -211,7 +211,7 @@ export default function BlogDetails() {
                       <FaFacebookF size={12} />
                     </a>
                     <a
-                      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out this health article at Medis: "${blog.title}"`)}`}
+                      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out this health article at Lab Easy: "${blog.title}"`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-sky-50 hover:text-sky-500 border border-gray-100 hover:border-sky-200 transition"
@@ -220,7 +220,7 @@ export default function BlogDetails() {
                       <FaTwitter size={12} />
                     </a>
                     <a
-                      href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(`Check out this health article at Medis: "${blog.title}"`)}&summary=${encodeURIComponent('Read the latest clinical updates and wellness insights from Medis.')}`}
+                      href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(`Check out this health article at Lab Easy: "${blog.title}"`)}&summary=${encodeURIComponent('Read the latest clinical updates and wellness insights from Lab Easy.')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-700 border border-gray-100 hover:border-blue-200 transition"

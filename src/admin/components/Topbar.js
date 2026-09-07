@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSettings } from '../../context/SettingsContext.jsx';
 
 const PAGE_TITLES = {
-  dashboard:'Dashboard', users:'Manage Users', doctors:'Manage Doctors',
+  dashboard:'Dashboard', today:'Today', labs:'Manage Labs',
+  users:'Manage Users', doctors:'Manage Doctors',
   tests:'Manage Tests', categories:'Test Categories', packages:'Health Packages',
-  bookings:'Lab Bookings', appointments:'Doctor Appointments', reports:'Reports',
-  payments:'Cash Collection', analytics:'Analytics & Reports',
+  bookings:'Lab Bookings', reports:'Reports',
+  analytics:'Analytics & Reports',
   settings:'App Settings', support:'Support Tickets', feedback:'Support Tickets',
 };
 

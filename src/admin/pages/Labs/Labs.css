@@ -1,0 +1,87 @@
+/* LABS — registration queue + lab register. Scoped under .admin-root. */
+
+.admin-root .labs-stats { grid-template-columns: repeat(4, 1fr); }
+
+.admin-root .labs-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.admin-root .labs-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--border); background: #fff; color: var(--muted);
+  border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .15s;
+}
+.admin-root .labs-tab:hover { border-color: var(--accent); color: var(--accent); }
+.admin-root .labs-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.admin-root .labs-tab-count {
+  background: rgba(0,0,0,.09); border-radius: 999px; padding: 1px 7px; font-size: 11px;
+}
+.admin-root .labs-tab.active .labs-tab-count { background: rgba(255,255,255,.25); }
+
+.admin-root .labs-ref { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; font-weight: 600; }
+.admin-root .labs-name { font-weight: 600; }
+.admin-root .labs-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.admin-root .labs-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+@media (max-width: 900px) {
+  .admin-root .labs-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---- lab detail view: the approval screen ---- */
+.admin-root .labv-header { align-items: flex-start; gap: 14px; }
+.admin-root .labv-id { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.admin-root .labv-avatar {
+  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent); color: #fff; font-size: 19px; font-weight: 700;
+}
+.admin-root .labv-header-right { display: flex; align-items: center; gap: 10px; }
+.admin-root .labv-ref { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 600; }
+
+.admin-root .labv-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;
+}
+.admin-root .labv-stat {
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 12px 14px; background: #f8fbfd;
+}
+.admin-root .labv-stat-num { font-size: 22px; font-weight: 700; line-height: 1.1; }
+.admin-root .labv-stat-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin-top: 4px;
+}
+
+.admin-root .labv-section { margin-bottom: 22px; }
+.admin-root .labv-section:last-child { margin-bottom: 0; }
+.admin-root .labv-section-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin-bottom: 10px;
+}
+
+.admin-root .labv-docs { list-style: none; margin: 0; padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.admin-root .labv-docs li {
+  display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-root .labv-docs li:last-child { border-bottom: 0; }
+.admin-root .labv-doc-icon { font-size: 18px; flex-shrink: 0; }
+.admin-root .labv-doc-meta { min-width: 0; flex: 1; }
+.admin-root .labv-doc-title { font-weight: 600; font-size: 14px; }
+.admin-root .labv-doc-sub { font-size: 12px; color: var(--muted); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.admin-root .labv-empty {
+  border: 1px dashed var(--border); border-radius: var(--radius-lg);
+  padding: 18px; text-align: center; color: var(--muted); font-size: 14px;
+}
+
+.admin-root .labv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 22px; }
+.admin-root .labv-field-wide { margin-top: 14px; }
+.admin-root .labv-field-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+}
+.admin-root .labv-field-value { font-size: 14px; margin-top: 2px; word-break: break-word; }
+
+@media (max-width: 700px) {
+  .admin-root .labv-stats { grid-template-columns: repeat(2, 1fr); }
+  .admin-root .labv-grid { grid-template-columns: 1fr; }
+}

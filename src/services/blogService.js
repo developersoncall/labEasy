@@ -6,7 +6,7 @@ const blogFromRow = (r) => ({
   slug: r.slug || '',
   category: r.category || 'General',
   authorName: r.author_name || 'Admin',
-  authorRole: r.author_role || 'Medis Team',
+  authorRole: r.author_role || 'Lab Easy Team',
   coverImageUrl: r.cover_image_url || '',
   publishedAt: r.published_at || '',
   readMinutes: r.read_minutes || 5,

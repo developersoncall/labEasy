@@ -106,7 +106,7 @@ const VIDEO_FAQS = [
   {
     id: 2,
     question: 'Will I get a prescription after a video consult?',
-    answer: 'Yes. If the doctor prescribes medication, a signed digital prescription is added to your Medis dashboard immediately after the call. It is valid at pharmacies across Bangladesh and can be downloaded as a PDF anytime.',
+    answer: 'Yes. If the doctor prescribes medication, a signed digital prescription is added to your Lab Easy dashboard immediately after the call. It is valid at pharmacies across Bangladesh and can be downloaded as a PDF anytime.',
   },
   {
     id: 3,
@@ -208,7 +208,7 @@ export default function VideoConsultation() {
           <SectionHeading
             eyebrow="How it works"
             title="From symptoms to prescription in 4 steps"
-            subtitle="The entire journey happens on Medis — booking, consultation, prescription and follow-up."
+            subtitle="The entire journey happens on Lab Easy — booking, consultation, prescription and follow-up."
           />
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step, index) => (
@@ -328,7 +328,7 @@ export default function VideoConsultation() {
               <SectionHeading
                 eyebrow="Patient stories"
                 title="Trusted by families across Bangladesh"
-                subtitle="Real experiences from patients who consulted doctors on Medis."
+                subtitle="Real experiences from patients who consulted doctors on Lab Easy."
               />
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 {shownTestimonials.map((testimonial, index) => (

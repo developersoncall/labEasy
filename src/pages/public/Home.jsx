@@ -13,7 +13,7 @@ import TestimonialsSection from '../../components/home/TestimonialsSection.jsx';
 import FaqSection from '../../components/home/FaqSection.jsx';
 import ContactCtaSection from '../../components/home/ContactCtaSection.jsx';
 
-/** Medis landing page — hero, search and all marketing sections. */
+/** Lab Easy landing page — hero, search and all marketing sections. */
 export default function Home() {
   useDocumentTitle('Home');
 

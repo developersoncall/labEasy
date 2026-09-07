@@ -105,7 +105,7 @@ export const whatsappNumber = (phone) => {
 
 /** Set the document title consistently */
 export const setPageTitle = (title) => {
-  document.title = title ? `${title} | Medis` : 'Medis — Healthcare Appointments & Diagnostics';
+  document.title = title ? `${title} | Lab Easy` : 'Lab Easy — Diagnostics, organised';
 };
 
 /** Format report turnaround time (e.g. 12 -> "12 hours", 48 -> "2 days", 80 -> "3 days") */

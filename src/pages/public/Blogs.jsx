@@ -47,7 +47,7 @@ export default function Blogs() {
           <SectionHeading
             eyebrow="Health Library"
             title="Health Articles & Wellness Insights"
-            subtitle="Evidence-based medical updates, nutrition tips, and wellness guides curated by the Medis clinical team."
+            subtitle="Evidence-based medical updates, nutrition tips, and wellness guides curated by the Lab Easy clinical team."
           />
 
         </div>

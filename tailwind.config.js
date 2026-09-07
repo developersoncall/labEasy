@@ -4,18 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary brand red (matches the Medis logo — rgba(255,0,0))
+        // Primary brand — LabEasy light blue
         primary: {
-          50: '#fff1f1',
-          100: '#ffdede',
-          200: '#ffc4c4',
-          300: '#ff9a9a',
-          400: '#ff5c5c',
-          500: '#ff1f1f',
-          600: '#ff0000',
-          700: '#d60000',
-          800: '#b00000',
-          900: '#8a0000',
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
         },
         // Secondary healthcare green
         secondary: {
@@ -33,6 +33,8 @@ export default {
       },
       fontFamily: {
         sans: ['Lato', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        // Editorial serif for headlines — the public site's classic register.
+        display: ['Newsreader', 'Georgia', 'Times New Roman', 'serif'],
       },
       boxShadow: {
         card: '0 2px 12px rgba(15, 23, 42, 0.06)',

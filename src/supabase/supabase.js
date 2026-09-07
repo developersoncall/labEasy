@@ -29,6 +29,22 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABA
 export const isSupabaseConfigured =
   SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 30;
 
+/**
+ * Credentials re-exported for the one place that needs a SECOND client:
+ * a Lab Admin creating a staff account. Signing that account up on the
+ * shared client would swap the Lab Admin session for the new staff session,
+ * so createSignupClient() below runs it on a throwaway, session-less client.
+ */
+export const SUPABASE_CREDENTIALS = { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY };
+
+/** A client that never touches localStorage — used only to create accounts. */
+export function createSignupClient() {
+  if (!isSupabaseConfigured) return null;
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
+
 export const supabase = isSupabaseConfigured
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;

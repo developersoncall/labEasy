@@ -11,14 +11,14 @@ import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 
 import Dashboard     from './pages/Dashboard/index';
+import Today         from './pages/Today/index';
+import Labs          from './pages/Labs/index';
 import Users         from './pages/Users/index';
 import Doctors       from './pages/Doctors/index';
 import Tests         from './pages/Tests/index';
 import Packages      from './pages/Packages/index';
 import Bookings      from './pages/Bookings/index';
-import Appointments  from './pages/Appointments/index';
 import Reports       from './pages/Reports/index';
-import Payments      from './pages/Payments/index';
 import Support       from './pages/Support/index';
 import Analytics     from './pages/Analytics/index';
 import Settings      from './pages/Settings/index';
@@ -52,6 +52,8 @@ const AdminApp = () => {
   const renderPage = () => {
     switch (page) {
       case 'dashboard':      return <Dashboard />;
+      case 'today':          return <Today />;
+      case 'labs':           return <Labs adminId={user?.id} onChange={refreshCounts} />;
       case 'users':          return <Users adminEmail={user?.email || ''} />;
       case 'doctors':        return <Doctors />;
       // Distinct keys force a remount so the Tests page opens on the right tab.
@@ -60,9 +62,7 @@ const AdminApp = () => {
       case 'packages':       return <Packages />;
       case 'blogs':          return <Blogs />;
       case 'bookings':       return <Bookings onChange={refreshCounts} />;
-      case 'appointments':   return <Appointments onChange={refreshCounts} />;
       case 'reports':        return <Reports onChange={refreshCounts} />;
-      case 'payments':       return <Payments />;
       case 'analytics':      return <Analytics />;
       case 'settings':       return <Settings />;
       case 'support':

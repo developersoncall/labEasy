@@ -11,6 +11,10 @@ import { APP_CONFIG } from '../config/appConfig.js';
  */
 export const DEFAULT_SETTINGS = {
   country_code: 'BD',
+  // Platform mode. false = lab-first only: no public patient dashboard and no
+  // public booking flow. The admin can flip this on later with no code change.
+  public_portal_enabled: false,
+  lab_registration_open: true,
   brand_name: APP_CONFIG.brand.name,
   brand_tagline: APP_CONFIG.brand.tagline,
   contact_phone: APP_CONFIG.contact.phone,

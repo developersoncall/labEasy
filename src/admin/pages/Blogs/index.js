@@ -12,7 +12,7 @@ const BlogFormModal = ({ blog, onClose, onSave }) => {
           title: '',
           category: 'General',
           authorName: 'Admin',
-          authorRole: 'Medis Team',
+          authorRole: 'Lab Easy Team',
           coverImageUrl: '',
           publishedAt: new Date().toISOString().split('T')[0],
           readMinutes: 5,

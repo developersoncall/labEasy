@@ -28,7 +28,7 @@ const INFO_POINTS = [
 
 const HOW_IT_WORKS = [
   { icon: FaSearch, step: '1', title: 'Pick your tests', text: 'Search the catalogue or filter by category and add tests to your booking.' },
-  { icon: FaUserNurse, step: '2', title: 'Sample collection', text: 'A trained phlebotomist visits your home, or walk in to a Medis centre.' },
+  { icon: FaUserNurse, step: '2', title: 'Sample collection', text: 'A trained phlebotomist visits your home, or walk in to a partner laboratory.' },
   { icon: FaMobileAlt, step: '3', title: 'Report on your phone', text: 'Track processing live and download the verified digital report.' },
 ];
 
@@ -166,7 +166,7 @@ export default function DiagnosticTests() {
         <div className="container-custom py-12 md:py-16">
           <SectionHeading
             eyebrow="Simple Process"
-            title="How lab testing works with Medis"
+            title="How lab testing works with Lab Easy"
             subtitle="Three steps between you and a verified report — no queues, no paperwork."
           />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">

@@ -53,7 +53,7 @@ const Payments = () => {
   const handleExport = () => {
     const headers = ['Ref', 'Patient', 'For', 'Type', 'Date', 'Amount', 'Payment'];
     const data = filtered.map(r => [r.ref, r.patient, r.item, r.source === 'lab' ? 'Lab' : 'Doctor', r.date, r.amount, r.paid ? 'Collected' : 'Pending']);
-    exportCSV('medis-cash-collection.csv', headers, data);
+    exportCSV('labeasy-cash-collection.csv', headers, data);
     toast_('Exported CSV');
   };
 

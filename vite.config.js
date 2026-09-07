@@ -18,7 +18,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    // Honour PORT when something else already holds 3000.
+    port: Number(process.env.PORT) || 3000,
     open: true,
   },
   build: {

@@ -127,7 +127,7 @@ export default function Dashboard() {
           {greeting}, {firstName}
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Here&apos;s a quick look at your health activity on Medis.
+          Here&apos;s a quick look at your health activity on Lab Easy.
         </p>
       </header>
 

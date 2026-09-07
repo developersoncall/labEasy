@@ -7,14 +7,22 @@ import useAuth from '../../hooks/useAuth.js';
 import useDocumentTitle from '../../hooks/useDocumentTitle.js';
 import { useSettings } from '../../context/SettingsContext.jsx';
 import { supabase } from '../../supabase/supabase.js';
+import { homeForRole } from '../../config/platform.js';
+import { DEMO_ACCOUNTS, DEMO_ROLE_TONES, showDemoAccounts } from '../../config/demoAccounts.js';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Sign-in page rendered inside AuthLayout's form panel. */
+/**
+ * One sign-in for every role.
+ *
+ * The role on `user_profiles` decides where you land: platform admins in the
+ * admin panel, anyone attached to a laboratory in the lab dashboard, patients
+ * in their dashboard (or back to the public page while that portal is off).
+ */
 export default function Login() {
   useDocumentTitle('Sign In');
   const { login } = useAuth();
-  const { brandName } = useSettings();
+  const { brandName, publicPortalEnabled, labRegistrationOpen } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,6 +32,7 @@ export default function Login() {
   const {
     register: field,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({ mode: 'onTouched' });
 
@@ -31,23 +40,38 @@ export default function Login() {
     setServerError('');
     try {
       const user = await login({ email, password });
-      // Admins go straight to the admin panel; patients to their dashboard.
-      let isAdmin = false;
+
+      // Read the role straight from the profile rather than waiting for the
+      // context to catch up, so the very first navigation is already correct.
+      let role = null;
       try {
         const { data } = await supabase
           .from('user_profiles')
           .select('role')
           .eq('user_id', user.id)
           .maybeSingle();
-        isAdmin = data?.role === 'admin';
+        role = data?.role || null;
       } catch {
-        isAdmin = false;
+        role = null;
       }
-      const target = isAdmin ? '/admin' : (location.state?.from || '/dashboard');
+
+      const fallback = homeForRole(role, { publicPortalEnabled });
+      // Honour where they were headed, but never send a lab or admin account
+      // into the patient area.
+      const from = location.state?.from;
+      const target = from && from.startsWith(fallback) ? from : fallback;
       navigate(target, { replace: true });
     } catch (err) {
       setServerError(err?.message || 'Unable to sign in. Please try again.');
     }
+  };
+
+  // Drop a demo account into the form and sign in with it right away.
+  const useDemoAccount = ({ email, password }) => {
+    setServerError('');
+    setValue('email', email, { shouldValidate: true });
+    setValue('password', password, { shouldValidate: true });
+    handleSubmit(onSubmit)();
   };
 
   return (
@@ -55,7 +79,7 @@ export default function Login() {
       <div className="card p-8">
         <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Sign in to manage your appointments, lab reports and prescriptions.
+          Sign in to your {brandName} admin panel or laboratory dashboard.
         </p>
 
         {serverError && (
@@ -77,7 +101,7 @@ export default function Login() {
               id="login-email"
               type="email"
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder="you@yourlab.com"
               className={`input-field ${errors.email ? 'input-error' : ''}`}
               aria-invalid={errors.email ? 'true' : 'false'}
               {...field('email', {
@@ -137,18 +161,54 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="my-6 flex items-center gap-3" aria-hidden="true">
-          <span className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs uppercase tracking-wide text-gray-400">New to {brandName}?</span>
-          <span className="h-px flex-1 bg-gray-200" />
-        </div>
+        {showDemoAccounts && (
+          <section className="mt-6 rounded-xl border border-dashed border-primary-200 bg-primary-50/60 p-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-primary-700">Demo accounts</h3>
+              <span className="text-[11px] text-gray-500">tap to fill</span>
+            </div>
+            <ul className="mt-3 space-y-2">
+              {DEMO_ACCOUNTS.map((account) => (
+                <li key={account.email}>
+                  <button
+                    type="button"
+                    onClick={() => useDemoAccount(account)}
+                    disabled={isSubmitting}
+                    className="w-full rounded-lg border border-primary-100 bg-white px-3 py-2 text-left transition hover:border-primary-300 hover:shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-gray-900">{account.name}</span>
+                      <span className={`badge ${DEMO_ROLE_TONES[account.role] || 'bg-gray-100 text-gray-700'}`}>
+                        {account.label}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 font-mono text-xs text-gray-600">
+                      {account.email} · {account.password}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-gray-400">{account.hint}</p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-        <p className="text-center text-sm text-gray-600">
-          Don&apos;t have an account?{' '}
-          <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-700 hover:underline">
-            Register
-          </Link>
-        </p>
+        {labRegistrationOpen && (
+          <>
+            <div className="my-6 flex items-center gap-3" aria-hidden="true">
+              <span className="h-px flex-1 bg-gray-200" />
+              <span className="text-xs uppercase tracking-wide text-gray-400">New to {brandName}?</span>
+              <span className="h-px flex-1 bg-gray-200" />
+            </div>
+
+            <p className="text-center text-sm text-gray-600">
+              Running a diagnostic laboratory?{' '}
+              <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-700 hover:underline">
+                Register with us
+              </Link>
+            </p>
+          </>
+        )}
       </div>
     </PageTransition>
   );

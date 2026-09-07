@@ -30,7 +30,7 @@ const PACKAGE_FAQS = [
     id: 'faq-report',
     question: 'When will I receive my reports?',
     answer:
-      'Most packages deliver verified digital reports within 24–48 hours of sample collection. Reports appear in your Medis dashboard and can be downloaded as PDFs anytime.',
+      'Most packages deliver verified digital reports within 24–48 hours of sample collection. Reports appear in your Lab Easy dashboard and can be downloaded as PDFs anytime.',
   },
   {
     id: 'faq-family',

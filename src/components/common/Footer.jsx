@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter, FaYoutube } from 'react-icons/fa6';
 import { IoCall, IoMail, IoLocationSharp, IoTime } from 'react-icons/io5';
 import { useSettings } from '../../context/SettingsContext.jsx';
+import BrandMark from './BrandMark.jsx';
 
 // Maps a social key to its icon + accessible label.
 const SOCIAL_ICONS = {
@@ -44,7 +45,7 @@ export default function Footer() {
         {/* Brand */}
         <div>
           <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2" aria-label={`${brandName} home`}>
-            <img src="/logo.png" alt={brandName} className="h-16 w-auto" width="64" height="64" />
+            <BrandMark size={56} title={brandName} />
           </Link>
           <p className="mt-4 text-sm leading-relaxed text-gray-400">
             {brandTagline} Book doctor appointments, video consultations, lab tests

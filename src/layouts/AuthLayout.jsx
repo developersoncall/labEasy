@@ -1,13 +1,14 @@
 import { Link, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaHeartbeat, FaFlask, FaVideo, FaShieldAlt } from 'react-icons/fa';
+import { FaFlask, FaClipboardCheck, FaFileMedical, FaShieldAlt } from 'react-icons/fa';
 import { useSettings } from '../context/SettingsContext.jsx';
+import BrandMark from '../components/common/BrandMark.jsx';
 
 const HIGHLIGHTS = [
-  { icon: FaHeartbeat, text: '550+ verified doctors across 15 specialties' },
-  { icon: FaFlask, text: 'Accredited labs with same-day reports' },
-  { icon: FaVideo, text: 'Secure video consultations from anywhere' },
-  { icon: FaShieldAlt, text: 'Your medical data stays encrypted & private' },
+  { icon: FaFlask, text: 'One workflow from the counter to the report' },
+  { icon: FaClipboardCheck, text: 'Role-based logins for every member of your team' },
+  { icon: FaFileMedical, text: 'Digital reports delivered against the right booking' },
+  { icon: FaShieldAlt, text: "Your lab's data is isolated and stays yours" },
 ];
 
 /** Split-screen layout for auth pages: brand panel + form outlet. */
@@ -19,7 +20,7 @@ export default function AuthLayout() {
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-gray-900 via-primary-900 to-primary-700 p-12 text-white lg:flex">
         <Link to="/" className="relative z-10 flex items-center gap-2" aria-label={`${brandName} home`}>
           <span className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white p-2.5 shadow-lg">
-            <img src="/logo.png" alt={brandName} className="h-full w-full object-contain" />
+            <BrandMark size={44} title={brandName} className="h-full w-full" />
           </span>
         </Link>
 
@@ -30,8 +31,8 @@ export default function AuthLayout() {
             transition={{ duration: 0.5 }}
             className="text-4xl font-bold leading-tight text-white"
           >
-            Healthcare that fits
-            <br /> into your day.
+            Diagnostics,
+            <br /> organised.
           </motion.h1>
           <ul className="mt-8 space-y-4">
             {HIGHLIGHTS.map(({ icon: Icon, text }, i) => (
@@ -64,7 +65,7 @@ export default function AuthLayout() {
       <main className="flex items-center justify-center bg-gray-50 px-4 py-10 sm:px-8">
         <div className="w-full max-w-md">
           <Link to="/" className="mb-8 flex items-center justify-center lg:hidden" aria-label={`${brandName} home`}>
-            <img src="/logo.png" alt={brandName} className="h-20 w-auto" width="80" height="80" />
+            <BrandMark size={72} title={brandName} />
           </Link>
           <Outlet />
         </div>
