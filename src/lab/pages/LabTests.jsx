@@ -151,14 +151,14 @@ export default function LabTests() {
               <div className="flex justify-end gap-1.5">
                 <button
                   type="button"
-                  className="btn-ghost whitespace-nowrap px-3 py-1.5 text-xs"
+                  className="btn-soft whitespace-nowrap px-3 py-1.5 text-xs"
                   onClick={() => setEditing(t)}
                 >
                   <FaEdit aria-hidden="true" /> Edit
                 </button>
                 <button
                   type="button"
-                  className="btn-ghost px-2.5 py-1.5 text-xs"
+                  className="btn-soft px-2.5 py-1.5 text-xs"
                   title={t.isActive ? 'Hide from booking' : 'Make bookable'}
                   onClick={async () => {
                     try {
@@ -173,7 +173,7 @@ export default function LabTests() {
                 </button>
                 <button
                   type="button"
-                  className="btn-ghost px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                  className="btn-danger-soft px-2.5 py-1.5 text-xs"
                   onClick={() => setConfirmDelete(t)}
                   aria-label={`Delete ${t.name}`}
                 >
@@ -198,6 +198,7 @@ export default function LabTests() {
       {importing && (
         <TestImporter
           labId={labId}
+          existing={tests}
           onClose={() => setImporting(false)}
           onImported={async (n) => {
             setImporting(false);

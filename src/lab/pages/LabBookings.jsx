@@ -189,13 +189,13 @@ export default function LabBookings() {
               <div className="flex justify-end gap-1.5">
                 <button
                   type="button"
-                  className="btn-ghost whitespace-nowrap px-3 py-1.5 text-xs"
+                  className="btn-soft whitespace-nowrap px-3 py-1.5 text-xs"
                   onClick={() => setDetailsFor(b)}
                 >
                   <FaEye aria-hidden="true" /> Details
                 </button>
                 {b.payment_status !== 'paid' && b.workflow_status !== 'cancelled' && (
-                  <button type="button" className="btn-ghost whitespace-nowrap px-3 py-1.5 text-xs" onClick={() => setPayFor(b)}>
+                  <button type="button" className="btn-soft whitespace-nowrap px-3 py-1.5 text-xs" onClick={() => setPayFor(b)}>
                     <FaMoneyBillWave aria-hidden="true" /> Payment
                   </button>
                 )}
@@ -219,7 +219,7 @@ export default function LabBookings() {
                 {role === ROLES.LAB_ADMIN && (
                   <button
                     type="button"
-                    className="btn-ghost whitespace-nowrap px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="btn-danger-soft whitespace-nowrap px-2.5 py-1.5 text-xs"
                     title="Delete this booking"
                     onClick={() => setDeleteFor(b)}
                   >
@@ -252,6 +252,7 @@ export default function LabBookings() {
       <CreateBookingModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
+        labId={labId}
         tests={tests}
         testsLoading={testsLoading}
         onCreate={async (payload) => {
@@ -260,13 +261,11 @@ export default function LabBookings() {
         }}
       />
 
+      {/* The modal writes its own ledger rows; this only refreshes the list. */}
       <PaymentModal
         booking={payFor}
         onClose={() => setPayFor(null)}
-        onSave={async (values) => {
-          await act(() => labBookingService.recordPayment(payFor.id, values));
-          setPayFor(null);
-        }}
+        onSave={load}
       />
     </Page>
   );

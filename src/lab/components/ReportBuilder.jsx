@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FaFlask, FaInfoCircle, FaArrowRight, FaArrowLeft, FaCheckCircle,
-  FaFilePdf, FaDownload, FaPen,
+  FaFilePdf, FaDownload, FaPen, FaCalculator,
 } from 'react-icons/fa';
 import Modal from '../../components/common/Modal.jsx';
 import useAuth from '../../hooks/useAuth.js';
@@ -12,9 +12,37 @@ import {
 import { labReportService } from '../../services/labReportService.js';
 import { labBookingService } from '../../services/labBookingService.js';
 import { buildReportPdf, groupRows } from '../report/reportPdf.js';
+import { resolveParameters, evaluateFormula } from '../report/ranges.js';
 import { ROLES } from '../../config/platform.js';
 import { labStaffService } from '../../services/labStaffService.js';
 import { Alert } from './ui.jsx';
+
+/**
+ * Fill in every calculated parameter from the ones that were typed.
+ *
+ * Run after each keystroke rather than on approval, so a tester sees the A/G
+ * ratio appear as they enter albumin and can spot a mistyped globulin while
+ * the sample is still on the bench.
+ */
+function recalculate(rows) {
+  const byName = {};
+  rows.forEach((r) => {
+    if (!r.isCalculated) byName[r.parameterName] = r.value;
+  });
+
+  // Two passes, so a calculated value may feed another calculated value —
+  // any deeper chain than that is a spreadsheet, not a report.
+  let out = rows;
+  for (let pass = 0; pass < 2; pass += 1) {
+    out = out.map((r) => {
+      if (!r.isCalculated || !r.formula) return r;
+      const value = evaluateFormula(r.formula, byName, r.decimals ?? 2);
+      return { ...r, value, flag: flagFor(value, r) };
+    });
+    out.forEach((r) => { if (r.isCalculated) byName[r.parameterName] = r.value; });
+  }
+  return out;
+}
 
 /**
  * Create a report: enter the values, read the report back, approve it.
@@ -43,6 +71,16 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
 
   const items = useMemo(() => (Array.isArray(booking?.items) ? booking.items : []), [booking]);
 
+  /**
+   * Who the ranges are chosen for. A parameter can carry a different window
+   * per sex and age band, so the sheet is built for this patient rather than
+   * for a generic adult.
+   */
+  const patient = useMemo(
+    () => ({ sex: booking?.patient_gender || '', age: booking?.patient_age }),
+    [booking?.patient_gender, booking?.patient_age],
+  );
+
   const load = useCallback(async () => {
     if (!booking) return;
     setLoading(true);
@@ -57,7 +95,8 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
 
       const built = [];
       items.forEach((item) => {
-        const params = byTest[item.id] || [];
+        // One row per analyte, already narrowed to this patient's sex and age.
+        const params = resolveParameters(byTest[item.id] || [], patient);
         if (params.length) {
           params.forEach((p) => {
             const prev = existing.get(`${item.id}::${p.name}`);
@@ -71,6 +110,11 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
               refLow: p.refLow,
               refHigh: p.refHigh,
               groupLabel: p.groupLabel,
+              method: p.method || '',
+              interpretation: p.interpretation || '',
+              isCalculated: !!p.isCalculated,
+              formula: p.formula || '',
+              decimals: p.decimals,
               value: prev?.value ?? '',
               flag: prev?.flag ?? '',
             });
@@ -85,18 +129,19 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
             parameterId: null,
             parameterName: item.name || 'Result',
             unit: '', refRange: '', refLow: null, refHigh: null, groupLabel: '',
+            method: '', interpretation: '', isCalculated: false, formula: '', decimals: null,
             value: prev?.value ?? '',
             flag: prev?.flag ?? '',
           });
         }
       });
-      setRows(built);
+      setRows(recalculate(built));
     } catch (err) {
       setError(err?.message || 'Could not prepare the result sheet.');
     } finally {
       setLoading(false);
     }
-  }, [booking, items]);
+  }, [booking, items, patient]);
 
   useEffect(() => {
     let alive = true;
@@ -125,9 +170,26 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
   useEffect(() => () => { if (saved?.blobUrl) URL.revokeObjectURL(saved.blobUrl); }, [saved]);
 
   const setValue = (i, value) =>
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, value, flag: flagFor(value, r) } : r)));
+    setRows((rs) =>
+      recalculate(rs.map((r, idx) => (idx === i ? { ...r, value, flag: flagFor(value, r) } : r))),
+    );
 
   const filled = rows.filter((r) => String(r.value).trim() !== '').length;
+
+  /**
+   * Comments the catalogue attached to a parameter, shown only where the
+   * result actually went out of range — a standing note printed against every
+   * normal result is noise that teaches people to stop reading them.
+   */
+  const standingComments = useMemo(
+    () =>
+      [...new Set(
+        rows
+          .filter((r) => r.interpretation && ['low', 'high', 'abnormal'].includes(r.flag))
+          .map((r) => r.interpretation),
+      )],
+    [rows],
+  );
   const preparedBy = profile?.full_name || user?.email || 'Authorised signatory';
 
   /**
@@ -143,6 +205,7 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
         booking,
         labId,
         rows,
+        notes,
         enteredBy: user?.id,
         title: `${items.map((i) => i.name).filter(Boolean).join(', ') || 'Lab Report'} — ${
           booking.patient_name || booking.booking_ref
@@ -156,17 +219,21 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
         preparedBy,
         approvedBy: approvedBy || lab?.name,
         notes,
+        comments: standingComments,
       });
       const file = new File([blob], `${booking.booking_ref || 'report'}.pdf`, {
         type: 'application/pdf',
       });
 
+      // Regenerating replaces the stored PDF rather than piling up files.
+      const previous = await labReportService.forBooking(booking.id).catch(() => []);
       const report = await labReportService.attachFile({
         reportId,
         labId,
         booking,
         file,
         signedBy: preparedBy,
+        previousPath: previous[0]?.file_path || null,
       });
 
       // A tester may take the booking as far as "testing completed"; the Lab
@@ -275,8 +342,8 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
                       {g.testName}
                       {g.groupLabel && <span className="text-gray-400"> · {g.groupLabel}</span>}
                     </h4>
-                    <div className="overflow-hidden rounded-xl border border-gray-100">
-                      <table className="w-full text-sm">
+                    <div className="overflow-x-auto rounded-xl border border-gray-100">
+                      <table className="w-full min-w-[560px] text-sm">
                         <thead className="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
                           <tr>
                             <th className="px-3 py-2 text-left font-semibold">Parameter</th>
@@ -291,21 +358,38 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
                             const index = rows.indexOf(r);
                             return (
                               <tr key={`${r.testId}-${r.parameterName}-${index}`}>
-                                <td className="px-3 py-2 text-gray-800">{r.parameterName}</td>
-                                <td className="px-2 py-1.5">
-                                  <input
-                                    className="input-field h-9 py-1 text-center text-sm"
-                                    value={r.value}
-                                    onChange={(e) => setValue(index, e.target.value)}
-                                    placeholder="—"
-                                    aria-label={`Result for ${r.parameterName}`}
-                                  />
+                                <td className="px-3 py-2 text-gray-800">
+                                  {r.parameterName}
+                                  {r.method && (
+                                    <span className="block text-[11px] text-gray-400">{r.method}</span>
+                                  )}
                                 </td>
-                                <td className="px-3 py-2 text-gray-500">{r.unit || '—'}</td>
-                                <td className="px-3 py-2 text-gray-500">{r.refRange || '—'}</td>
+                                <td className="px-2 py-1.5">
+                                  {r.isCalculated ? (
+                                    <div
+                                      className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-200 bg-gray-50 text-sm font-semibold tabular-nums text-gray-700"
+                                      title={`Calculated from ${r.formula}`}
+                                    >
+                                      <FaCalculator className="text-[11px] text-gray-400" aria-hidden="true" />
+                                      {r.value || '—'}
+                                    </div>
+                                  ) : (
+                                    <input
+                                      className="input-field h-9 py-1 text-center text-sm"
+                                      value={r.value}
+                                      onChange={(e) => setValue(index, e.target.value)}
+                                      placeholder="—"
+                                      aria-label={`Result for ${r.parameterName}`}
+                                    />
+                                  )}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-2 text-gray-500">{r.unit || '—'}</td>
+                                <td className="whitespace-nowrap px-3 py-2 text-gray-500">{r.refRange || '—'}</td>
                                 <td className="px-3 py-2">
                                   {r.flag ? (
-                                    <span className={`badge ${FLAG_STYLES[r.flag]}`}>{FLAG_LABELS[r.flag]}</span>
+                                    <span className={`badge whitespace-nowrap ${FLAG_STYLES[r.flag]}`}>
+                                      {FLAG_LABELS[r.flag]}
+                                    </span>
                                   ) : (
                                     <span className="text-xs text-gray-300">—</span>
                                   )}
@@ -379,7 +463,7 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
                       {g.testName}
                       {g.groupLabel && <span className="text-gray-400"> — {g.groupLabel}</span>}
                     </h4>
-                    <table className="w-full text-sm">
+                    <table className="w-full min-w-[520px] text-sm">
                       <thead>
                         <tr className="border-b border-gray-200 text-[10px] uppercase tracking-wide text-gray-500">
                           <th className="w-[38%] py-1.5 text-left font-semibold">Investigation</th>
@@ -416,12 +500,17 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
                   </section>
                 ))}
 
-                {notes && (
+                {(notes || standingComments.length > 0) && (
                   <section>
                     <h4 className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-primary-700">
                       Interpretation
                     </h4>
-                    <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">{notes}</p>
+                    {notes && (
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">{notes}</p>
+                    )}
+                    {standingComments.map((c) => (
+                      <p key={c} className="mt-1 text-sm leading-relaxed text-gray-600">{c}</p>
+                    ))}
                   </section>
                 )}
 
@@ -477,14 +566,14 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
               )}
               {saved?.blobUrl && (
                 <a
-                  className="btn-ghost flex-1"
+                  className="btn-soft flex-1"
                   href={saved.blobUrl}
                   download={`${booking.booking_ref || 'report'}.pdf`}
                 >
                   <FaDownload aria-hidden="true" /> Download
                 </a>
               )}
-              <button type="button" className="btn-ghost flex-1" onClick={() => setStep('entry')}>
+              <button type="button" className="btn-soft flex-1" onClick={() => setStep('entry')}>
                 <FaPen aria-hidden="true" /> Edit values
               </button>
             </div>

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FaFlask, FaTachometerAlt, FaCalendarDay, FaClipboardList, FaVials, FaFileMedical,
   FaUsers, FaCog, FaLifeRing, FaSignOutAlt, FaBars, FaTimes, FaFlask as FaVialsIcon,
+  FaUserInjured, FaFileInvoiceDollar,
 } from 'react-icons/fa';
 import useAuth from '../../hooks/useAuth.js';
 import { useSettings } from '../../context/SettingsContext.jsx';
@@ -25,6 +26,7 @@ const NAV = [
       { to: '/lab', end: true, section: 'dashboard', icon: <FaTachometerAlt />, label: 'Dashboard' },
       { to: '/lab/today', section: 'today', icon: <FaCalendarDay />, label: 'Today' },
       { to: '/lab/bookings', section: 'bookings', icon: <FaClipboardList />, label: 'Bookings' },
+      { to: '/lab/patients', section: 'patients', icon: <FaUserInjured />, label: 'Patients' },
       { to: '/lab/testing', section: 'testing', icon: <FaVials />, label: 'Testing' },
       { to: '/lab/reports', section: 'reports', icon: <FaFileMedical />, label: 'Reports' },
     ],
@@ -33,6 +35,7 @@ const NAV = [
     group: 'Management',
     items: [
       { to: '/lab/tests', section: 'tests', icon: <FaVialsIcon />, label: 'Tests' },
+      { to: '/lab/accounts', section: 'accounts', icon: <FaFileInvoiceDollar />, label: 'Accounts' },
       { to: '/lab/staff', section: 'staff', icon: <FaUsers />, label: 'Staff' },
       { to: '/lab/settings', section: 'settings', icon: <FaCog />, label: 'Lab Settings' },
       { to: '/lab/help', section: 'help', icon: <FaLifeRing />, label: 'Help & Support' },
@@ -117,7 +120,7 @@ export default function LabShell({ children }) {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1560px] gap-8 px-4 py-7 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[1560px] gap-6 px-4 py-7 sm:px-6 lg:gap-8 lg:px-8">
         {/* ---- sidebar ---- */}
         {open && (
           <button
@@ -130,7 +133,7 @@ export default function LabShell({ children }) {
         <aside
           className={`${
             open ? 'block' : 'hidden'
-          } fixed inset-x-0 top-16 z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-gray-200 bg-gray-50 p-4 lg:sticky lg:top-[88px] lg:z-auto lg:block lg:max-h-none lg:w-60 lg:shrink-0 lg:self-start lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0`}
+          } fixed inset-x-0 top-16 z-30 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-gray-200 bg-gray-50 p-4 lg:sticky lg:top-[88px] lg:z-auto lg:block lg:max-h-none lg:w-60 lg:shrink-0 lg:self-start lg:overflow-visible lg:border-b-0 lg:border-r lg:border-gray-200 lg:bg-transparent lg:pb-8 lg:pl-0 lg:pr-6 lg:pt-0`}
         >
           <nav className="space-y-6">
             {groups.map((g) => (
@@ -164,7 +167,7 @@ export default function LabShell({ children }) {
         </aside>
 
         {/* ---- content ---- */}
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1 lg:pl-2">{children}</main>
       </div>
     </div>
   );

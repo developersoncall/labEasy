@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  FaUpload, FaCheckDouble, FaDownload, FaFilePdf, FaEye, FaSyncAlt, FaClipboardList,
+  FaDownload, FaFilePdf, FaEye, FaClipboardList,
 } from 'react-icons/fa';
 import useAuth from '../../hooks/useAuth.js';
 import useDocumentTitle from '../../hooks/useDocumentTitle.js';
 import Spinner from '../../components/common/Spinner.jsx';
 import BookingDetails from '../components/BookingDetails.jsx';
-import UploadReportModal from '../components/UploadReportModal.jsx';
 import ReportBuilder from '../components/ReportBuilder.jsx';
 import { labBookingService } from '../../services/labBookingService.js';
+import { NextStepButton } from '../components/nextStep.jsx';
 import { labReportService } from '../../services/labReportService.js';
+import { ROLES } from '../../config/platform.js';
 import {
   Page, PageHeader, StatusPill, TableFrame, Td, Row, PatientCell, itemsLabel, FilterTabs, Alert,
 } from '../components/ui.jsx';
@@ -41,7 +42,7 @@ const EMPTY_TEXT = {
 };
 
 export default function LabReports() {
-  const { labId, user } = useAuth();
+  const { labId, user, role } = useAuth();
   useDocumentTitle('Reports');
 
   const [tab, setTab] = useState('all');
@@ -49,11 +50,7 @@ export default function LabReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [uploadFor, setUploadFor] = useState(null);
-  const [busyId, setBusyId] = useState(null);
   const [detailsFor, setDetailsFor] = useState(null);
-  // A wrong PDF should be fixable from the desk it was noticed at.
-  const [replaceFor, setReplaceFor] = useState(null);
   const [buildFor, setBuildFor] = useState(null);
 
   // One fetch of the lab's whole book; the tabs are slices of it, so each can
@@ -90,19 +87,6 @@ export default function LabReports() {
   );
 
   const reportFor = (bookingId) => reports.find((r) => r.booking_id === bookingId);
-
-  const act = async (id, fn) => {
-    setError('');
-    setBusyId(id);
-    try {
-      await fn();
-      await load();
-    } catch (err) {
-      setError(err?.message || 'That action was refused.');
-    } finally {
-      setBusyId(null);
-    }
-  };
 
   const download = async (report) => {
     try {
@@ -162,60 +146,35 @@ export default function LabReports() {
                 )}
               </Td>
               <Td className="text-right">
-                <button
-                  type="button"
-                  className="btn-ghost mr-1 whitespace-nowrap px-3 py-1.5 text-xs"
-                  onClick={() => setDetailsFor(b)}
-                >
-                  <FaEye aria-hidden="true" /> Details
-                </button>
-                {CAN_UPLOAD.includes(b.workflow_status) && (
+                <div className="flex items-center justify-end gap-2">
                   <button
                     type="button"
-                    className="btn-outline mr-1 whitespace-nowrap px-3 py-1.5 text-xs"
-                    onClick={() => setBuildFor(b)}
+                    className="btn-soft whitespace-nowrap px-3 py-1.5 text-xs"
+                    onClick={() => setDetailsFor(b)}
                   >
-                    <FaClipboardList aria-hidden="true" /> Create report
+                    <FaEye aria-hidden="true" /> Details
                   </button>
-                )}
-                {!report && CAN_UPLOAD.includes(b.workflow_status) && (
-                  <button
-                    type="button"
-                    className="btn-primary whitespace-nowrap px-3.5 py-1.5 text-xs"
-                    onClick={() => setUploadFor(b)}
-                  >
-                    <FaUpload aria-hidden="true" /> Upload report
-                  </button>
-                )}
-                {!report && !CAN_UPLOAD.includes(b.workflow_status) && (
-                  <span className="whitespace-nowrap text-xs text-gray-400">
-                    {b.workflow_status === 'cancelled' ? 'cancelled' : 'waiting on testing'}
-                  </span>
-                )}
-                {report && (
-                  <button
-                    type="button"
-                    className="btn-outline whitespace-nowrap px-3 py-1.5 text-xs"
-                    onClick={() => setReplaceFor({ booking: b, report })}
-                  >
-                    <FaSyncAlt aria-hidden="true" /> Replace
-                  </button>
-                )}
-                {report && b.workflow_status !== 'completed' && (
-                  <button
-                    type="button"
-                    className="btn-secondary whitespace-nowrap px-3.5 py-1.5 text-xs"
-                    disabled={busyId === b.id}
-                    onClick={() =>
-                      act(b.id, async () => {
-                        await labReportService.markCompleted(report.id);
-                        await labBookingService.markCompleted(b.id);
-                      })
-                    }
-                  >
-                    <FaCheckDouble aria-hidden="true" /> Mark completed
-                  </button>
-                )}
+
+                  {/* The one thing this booking is waiting for, for this role. */}
+                  {CAN_UPLOAD.includes(b.workflow_status) && !report ? (
+                    <button
+                      type="button"
+                      className="btn-primary whitespace-nowrap px-3.5 py-1.5 text-xs"
+                      onClick={() => setBuildFor(b)}
+                    >
+                      <FaClipboardList aria-hidden="true" /> Create report
+                    </button>
+                  ) : (
+                    <NextStepButton
+                      booking={b}
+                      role={role}
+                      report={report}
+                      userId={user?.id}
+                      onDone={load}
+                      onNeedsDialog={() => setBuildFor(b)}
+                    />
+                  )}
+                </div>
               </Td>
             </Row>
           );
@@ -226,35 +185,7 @@ export default function LabReports() {
 
       <ReportBuilder booking={buildFor} onClose={() => setBuildFor(null)} onSaved={load} />
 
-      <UploadReportModal
-        booking={replaceFor?.booking || null}
-        replacing={replaceFor?.report || null}
-        onClose={() => setReplaceFor(null)}
-        onUpload={async (file) => {
-          await act(replaceFor.booking.id, async () => {
-            await labReportService.replaceFile(replaceFor.report, file);
-            setReplaceFor(null);
-          });
-        }}
-      />
 
-      <UploadReportModal
-        booking={uploadFor}
-        onClose={() => setUploadFor(null)}
-        onUpload={async (file, notes) => {
-          await act(uploadFor.id, async () => {
-            await labReportService.upload({
-              labId,
-              booking: uploadFor,
-              file,
-              uploadedBy: user?.id,
-              notes,
-            });
-            await labBookingService.update(uploadFor.id, { workflow_status: 'report_uploaded' });
-          });
-          setUploadFor(null);
-        }}
-      />
     </Page>
   );
 }

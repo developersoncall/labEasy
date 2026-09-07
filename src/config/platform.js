@@ -35,9 +35,15 @@ export const LAB_SECTION_ACCESS = {
   // stage of it they own.
   today: LAB_ROLES,
   bookings: [ROLES.LAB_ADMIN, ROLES.RECEPTIONIST],
+  // The register is reception's tool, and the report desk needs it to check
+  // what a patient was tested for last time.
+  patients: [ROLES.LAB_ADMIN, ROLES.RECEPTIONIST, ROLES.REPORTIST],
   testing: [ROLES.LAB_ADMIN, ROLES.TESTER],
   reports: [ROLES.LAB_ADMIN, ROLES.REPORTIST],
   tests: [ROLES.LAB_ADMIN],
+  // The books are the Lab Admin's; a receptionist sees a bill, not the day's
+  // margin. The database policy on lab_expenses says the same thing.
+  accounts: [ROLES.LAB_ADMIN],
   staff: [ROLES.LAB_ADMIN],
   help: LAB_ROLES,
   settings: [ROLES.LAB_ADMIN],

@@ -3,7 +3,6 @@ import {
   FaFilePdf, FaDownload, FaTrash, FaSyncAlt, FaCheck, FaCircle, FaTimesCircle, FaClipboardList,
 } from 'react-icons/fa';
 import Modal from '../../components/common/Modal.jsx';
-import UploadReportModal from './UploadReportModal.jsx';
 import PaymentModal from './PaymentModal.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
 import ReportBuilder from './ReportBuilder.jsx';
@@ -13,9 +12,7 @@ import useAuth from '../../hooks/useAuth.js';
 import { ROLES } from '../../config/platform.js';
 import { labBookingService, STATUS_LABELS, WORKFLOW_STAGES } from '../../services/labBookingService.js';
 import { labReportService } from '../../services/labReportService.js';
-import {
-  reportResultService, FLAG_STYLES, FLAG_LABELS,
-} from '../../services/reportResultService.js';
+import { reportResultService } from '../../services/reportResultService.js';
 import { formatCurrency } from '../../utils/helpers.js';
 
 /**
@@ -65,6 +62,19 @@ function SectionTitle({ children, right }) {
       <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-500">{children}</h4>
       {right}
     </div>
+  );
+}
+
+/** A bordered section: hairline box, tinted header strip, padded body. */
+function Panel({ title, right, children, bodyClass = 'p-4' }) {
+  return (
+    <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <header className="flex items-baseline justify-between gap-3 border-b border-gray-100 bg-gray-50/70 px-4 py-2.5">
+        <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-500">{title}</h4>
+        {right}
+      </header>
+      <div className={bodyClass}>{children}</div>
+    </section>
   );
 }
 
@@ -154,7 +164,6 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
   const [busy, setBusy] = useState(true);
   const [busyAction, setBusyAction] = useState(false);
   const [error, setError] = useState('');
-  const [uploadMode, setUploadMode] = useState(null); // 'new' | 'replace'
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showLog, setShowLog] = useState(false);
@@ -179,7 +188,7 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
     setError('');
     setShowLog(false);
     // Opened straight onto an action, from a row's pending-step button.
-    setUploadMode(initialAction === 'upload' ? 'new' : null);
+    setBuildOpen(initialAction === 'upload');
     setPaymentOpen(initialAction === 'payment');
     refresh().finally(() => alive && setBusy(false));
     return () => { alive = false; };
@@ -190,9 +199,13 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
   // Whoever may upload a report may also correct one that is already there.
   const canReplaceReport = isLabAdmin || role === ROLES.REPORTIST;
   const step = nextStepFor(booking, role, report);
+  const canEditReport =
+    step?.kind !== 'upload'
+    && CAN_BUILD_REPORT.includes(booking?.workflow_status)
+    && [ROLES.LAB_ADMIN, ROLES.TESTER, ROLES.REPORTIST].includes(role);
 
   const runStep = async (kind) => {
-    if (kind === 'upload') return setUploadMode('new');
+    if (kind === 'upload') return setBuildOpen(true);
     if (kind === 'payment') return setPaymentOpen(true);
     setError('');
     setBusyAction(true);
@@ -245,7 +258,7 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
         )}
 
         {/* ---- the pending action ---- */}
-        {(step || isLabAdmin) && (
+        {(step || canEditReport) && (
           <section className="rounded-xl border border-primary-100 bg-primary-50/60 p-4">
             <SectionTitle>{step && step.kind !== 'blocked' ? 'Waiting on you' : 'Actions'}</SectionTitle>
             <div className="flex flex-wrap items-center gap-2">
@@ -260,37 +273,26 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
                   {step.icon} {busyAction ? 'Working…' : step.label}
                 </button>
               )}
-              {!step && isLabAdmin && (
-                <span className="text-sm text-gray-500">Nothing is pending on this booking.</span>
-              )}
-              {CAN_BUILD_REPORT.includes(booking.workflow_status)
-                && [ROLES.LAB_ADMIN, ROLES.TESTER, ROLES.REPORTIST].includes(role) && (
+              {/* Revising an existing report — offered only when the pending
+                  step is not already "create one", or the same action would
+                  appear twice side by side. */}
+              {canEditReport && (
                 <button
                   type="button"
-                  className="btn-outline px-4 py-2 text-sm"
+                  className="btn-soft px-4 py-2 text-sm"
                   onClick={() => setBuildOpen(true)}
                 >
                   <FaClipboardList aria-hidden="true" /> {results.length ? 'Edit report' : 'Create report'}
-                </button>
-              )}
-              {isLabAdmin && (
-                <button
-                  type="button"
-                  className="btn-ghost ml-auto px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
-                  onClick={() => setConfirmDelete(true)}
-                >
-                  <FaTrash aria-hidden="true" /> Delete booking
                 </button>
               )}
             </div>
           </section>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-          <div className="min-w-0 space-y-6">
+        <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
+          <div className="min-w-0 space-y-5">
             {/* ---- patient ---- */}
-            <section>
-              <SectionTitle>Patient</SectionTitle>
+            <Panel title="Patient">
               <dl className="grid gap-4 sm:grid-cols-3">
                 <Field label="Name">{booking.patient_name || 'Walk-in patient'}</Field>
                 <Field label="Phone">{booking.patient_phone}</Field>
@@ -300,86 +302,43 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
                 <Field label="Source">{booking.source === 'walk_in' ? 'Walk-in' : booking.source}</Field>
               </dl>
               {booking.address && (
-                <div className="mt-4">
+                <div className="mt-4 border-t border-gray-100 pt-4">
                   <Field label="Address">{[booking.address, booking.city].filter(Boolean).join(', ')}</Field>
                 </div>
               )}
-            </section>
+            </Panel>
 
             {/* ---- tests & money ---- */}
-            <section>
-              <SectionTitle>Tests &amp; payment</SectionTitle>
+            <Panel title="Tests &amp; payment" bodyClass="p-0">
               {items.length ? (
-                <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-100">
+                <ul className="divide-y divide-gray-100">
                   {items.map((t, i) => (
                     <li key={t.id || i} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
                       <span className="min-w-0 truncate text-gray-800">{t.name || t.title || 'Test'}</span>
-                      <span className="shrink-0 font-semibold text-gray-900">{formatCurrency(t.price)}</span>
+                      <span className="shrink-0 font-semibold tabular-nums text-gray-900">
+                        {formatCurrency(t.price)}
+                      </span>
                     </li>
                   ))}
-                  <li className="flex items-center justify-between gap-3 bg-gray-50 px-4 py-2.5 text-sm font-bold">
+                  <li className="flex items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-bold">
                     <span>Total</span>
-                    <span>{formatCurrency(booking.total_amount)}</span>
+                    <span className="tabular-nums">{formatCurrency(booking.total_amount)}</span>
                   </li>
                 </ul>
               ) : (
-                <p className="text-sm text-gray-400">{itemsLabel(booking.items)}</p>
+                <p className="px-4 py-3 text-sm text-gray-400">{itemsLabel(booking.items)}</p>
               )}
-              <dl className="mt-4 grid gap-4 sm:grid-cols-3">
+              <dl className="grid gap-4 border-t border-gray-100 px-4 py-4 sm:grid-cols-3">
                 <Field label="Paid">{formatCurrency(booking.amount_paid)}</Field>
                 <Field label="Method">{booking.payment_method}</Field>
                 <Field label="Stage">{STATUS_LABELS[booking.workflow_status]}</Field>
               </dl>
-            </section>
-
-            {/* ---- measured results ---- */}
-            {results.length > 0 && (
-              <section>
-                <SectionTitle>Results</SectionTitle>
-                <div className="overflow-hidden rounded-xl border border-gray-100">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
-                      <tr>
-                        <th className="px-3 py-2 text-left font-semibold">Parameter</th>
-                        <th className="px-3 py-2 text-left font-semibold">Result</th>
-                        <th className="px-3 py-2 text-left font-semibold">Reference</th>
-                        <th className="px-3 py-2 text-left font-semibold">Flag</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {results.map((r) => (
-                        <tr key={r.id}>
-                          <td className="px-3 py-2 text-gray-800">
-                            {r.parameter_name}
-                            {r.group_label && (
-                              <span className="ml-1.5 text-xs text-gray-400">{r.group_label}</span>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 font-semibold text-gray-900">
-                            {r.value || '—'}
-                            {r.unit && <span className="ml-1 font-normal text-gray-400">{r.unit}</span>}
-                          </td>
-                          <td className="px-3 py-2 text-gray-500">{r.ref_range || '—'}</td>
-                          <td className="px-3 py-2">
-                            {r.flag ? (
-                              <span className={`badge ${FLAG_STYLES[r.flag]}`}>{FLAG_LABELS[r.flag]}</span>
-                            ) : (
-                              <span className="text-xs text-gray-300">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            )}
+            </Panel>
 
             {/* ---- report ---- */}
-            <section>
-              <SectionTitle>Report</SectionTitle>
+            <Panel title="Report">
               {report ? (
-                <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <FaFilePdf className="shrink-0 text-lg text-primary-600" aria-hidden="true" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-gray-900">
@@ -391,55 +350,64 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
                       {report.file_size ? ` · ${Math.round(report.file_size / 1024)} KB` : ''}
                     </p>
                   </div>
-                  <button type="button" className="btn-ghost px-3 py-1.5 text-xs" onClick={() => download(report)}>
+                  <button type="button" className="btn-soft px-3 py-1.5 text-xs" onClick={() => download(report)}>
                     <FaDownload aria-hidden="true" /> Open
                   </button>
                   {canReplaceReport && (
                     <button
                       type="button"
                       className="btn-outline px-3 py-1.5 text-xs"
-                      onClick={() => setUploadMode('replace')}
+                      onClick={() => setBuildOpen(true)}
                     >
-                      <FaSyncAlt aria-hidden="true" /> Replace PDF
+                      <FaSyncAlt aria-hidden="true" /> Replace report
                     </button>
                   )}
                 </div>
               ) : (
-                <p className="rounded-xl border border-dashed border-gray-200 px-4 py-3 text-sm text-gray-400">
+                <p className="rounded-lg border border-dashed border-gray-200 px-4 py-3 text-sm text-gray-400">
                   No report uploaded yet.
                 </p>
               )}
-            </section>
+            </Panel>
 
             {booking.staff_notes && (
-              <section>
-                <SectionTitle>Notes</SectionTitle>
-                <p className="rounded-xl bg-gray-50 p-4 text-sm leading-relaxed text-gray-700">
-                  {booking.staff_notes}
-                </p>
-              </section>
+              <Panel title="Notes">
+                <p className="text-sm leading-relaxed text-gray-700">{booking.staff_notes}</p>
+              </Panel>
+            )}
+
+            {/* Last, and deliberately apart from the workflow actions: this
+                removes the booking and the report along with it. */}
+            {isLabAdmin && (
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-red-100 bg-red-50/40 px-4 py-2.5">
+                <p className="text-xs text-red-800">Removes the booking and its report.</p>
+                <button
+                  type="button"
+                  className="btn-danger-soft shrink-0 px-3.5 py-2 text-sm"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  <FaTrash aria-hidden="true" /> Delete booking
+                </button>
+              </div>
             )}
           </div>
 
           {/* ---- timeline ---- */}
           <aside className="min-w-0">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <SectionTitle
-                right={
-                  activity.length > 0 && (
-                    <button
-                      type="button"
-                      className="text-[11px] font-semibold text-primary-600 hover:text-primary-700"
-                      onClick={() => setShowLog((v) => !v)}
-                    >
-                      {showLog ? 'Hide log' : 'Full log'}
-                    </button>
-                  )
-                }
-              >
-                Progress
-              </SectionTitle>
-
+            <Panel
+              title="Progress"
+              right={
+                activity.length > 0 && (
+                  <button
+                    type="button"
+                    className="text-[11px] font-semibold text-primary-600 hover:text-primary-700"
+                    onClick={() => setShowLog((v) => !v)}
+                  >
+                    {showLog ? 'Hide log' : 'Full log'}
+                  </button>
+                )
+              }
+            >
               {busy ? (
                 <p className="text-sm text-gray-400">Loading…</p>
               ) : (
@@ -470,7 +438,7 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
                   </ol>
                 </div>
               )}
-            </div>
+            </Panel>
           </aside>
         </div>
 
@@ -479,48 +447,13 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
         </button>
       </div>
 
-      <UploadReportModal
-        booking={uploadMode ? booking : null}
-        replacing={uploadMode === 'replace' ? report : null}
-        onClose={() => setUploadMode(null)}
-        onUpload={async (file, notes) => {
-          setError('');
-          try {
-            if (uploadMode === 'replace' && report) {
-              await labReportService.replaceFile(report, file);
-            } else {
-              await labReportService.upload({
-                labId: booking.lab_id || labId,
-                booking,
-                file,
-                uploadedBy: user?.id,
-                notes,
-              });
-              await labBookingService.update(booking.id, { workflow_status: 'report_uploaded' });
-            }
-            setUploadMode(null);
-            await refresh();
-            await onChanged?.();
-          } catch (err) {
-            setError(err?.message || 'Could not save that report.');
-          }
-        }}
-      />
 
+      {/* Payments are ledger rows written inside the modal — this just keeps
+          the drawer in step with what they changed. */}
       <PaymentModal
         booking={paymentOpen ? booking : null}
         onClose={() => setPaymentOpen(false)}
-        onSave={async (values) => {
-          setError('');
-          try {
-            await labBookingService.recordPayment(booking.id, values);
-            setPaymentOpen(false);
-            await onChanged?.();
-            onClose?.();
-          } catch (err) {
-            setError(err?.message || 'Could not record that payment.');
-          }
-        }}
+        onSave={async () => { await onChanged?.(); }}
       />
 
       {buildOpen && (

@@ -40,9 +40,34 @@ const paramFromRow = (row) => ({
   refLow: row.ref_low,
   refHigh: row.ref_high,
   sex: row.sex || 'any',
+  // The age window this row's range applies to. Null on both sides means the
+  // row applies at every age, which is what an unsplit catalogue looks like.
+  ageMin: row.age_min,
+  ageMax: row.age_max,
+  ageUnit: row.age_unit || 'years',
+  interpretation: row.interpretation || '',
+  formula: row.formula || '',
+  isCalculated: !!row.is_calculated,
+  decimals: row.decimals,
   groupLabel: row.group_label || '',
   method: row.method || '',
   sortOrder: row.sort_order ?? 0,
+});
+
+/**
+ * The columns phase2.sql adds to test_parameters. Written separately so a
+ * database that has not run it yet still saves the parameter itself rather
+ * than failing the whole test.
+ */
+let paramPhase2 = true;
+const phase2Columns = (p) => ({
+  age_min: p.ageMin === '' || p.ageMin == null ? null : Number(p.ageMin),
+  age_max: p.ageMax === '' || p.ageMax == null ? null : Number(p.ageMax),
+  age_unit: p.ageUnit || 'years',
+  interpretation: p.interpretation || '',
+  formula: p.formula || '',
+  is_calculated: !!p.isCalculated,
+  decimals: p.decimals === '' || p.decimals == null ? null : Number(p.decimals),
 });
 
 /** The catalogue tables only arrive with section 20 of newSQL.html. */
@@ -150,7 +175,7 @@ export const labTestService = {
     if (delErr) throw delErr;
     if (!parameters.length) return [];
 
-    const rows = parameters.map((p, i) => ({
+    const base = parameters.map((p, i) => ({
       test_id: testId,
       name: p.name,
       unit: p.unit || '',
@@ -164,9 +189,22 @@ export const labTestService = {
       is_active: true,
     }));
 
+    const rows = paramPhase2
+      ? base.map((row, i) => ({ ...row, ...phase2Columns(parameters[i]) }))
+      : base;
+
     const { data, error } = await supabase.from('test_parameters').insert(rows).select('*');
-    if (error) throw error;
-    return (data || []).map(paramFromRow);
+    if (!error) return (data || []).map(paramFromRow);
+
+    // Age windows, formulas and notes only exist after phase2.sql. Losing them
+    // is a smaller failure than losing the parameter list.
+    if (paramPhase2 && isMissingSchema(error)) {
+      paramPhase2 = false;
+      const retry = await supabase.from('test_parameters').insert(base).select('*');
+      if (retry.error) throw retry.error;
+      return (retry.data || []).map(paramFromRow);
+    }
+    throw error;
   },
 
   /**

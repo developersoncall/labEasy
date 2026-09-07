@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { testsData, categoriesData } from '../../adminData';
 import { formatCurrency, currencySymbol } from '../../../utils/helpers.js';
 import { Avatar, Toast, Modal, ConfirmModal, Field, Badge, EmptyState, SectionTitle } from '../../components/Shared';
+import ParametersModal from '../../components/ParametersModal';
 import './Tests.css';
 
 /* ── hoisted outside parent to prevent input remounting ── */
@@ -204,6 +205,8 @@ const Tests = ({ initialTab = 'tests' }) => {
   const [search, setSearch] = useState('');
   const [view, setView] = useState(null);
   const [edit, setEdit] = useState(null);
+  // Sub-tests: the analytes a report for this test will contain.
+  const [params, setParams] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [delTest, setDelTest] = useState(null);
   const [catModal, setCatModal] = useState(null);
@@ -345,6 +348,7 @@ const Tests = ({ initialTab = 'tests' }) => {
                     <div className="actions">
                       <button className="btn btn-secondary btn-sm btn-icon" title="View" onClick={()=>setView(t)}>👁</button>
                       <button className="btn btn-secondary btn-sm btn-icon" title="Edit" onClick={()=>setEdit(t)}>✏️</button>
+                      <button className="btn btn-secondary btn-sm" title="Sub-tests" onClick={()=>setParams(t)}>🧬 Sub-tests</button>
                       <button className="btn btn-secondary btn-sm btn-icon del-btn" title="Delete" onClick={()=>setDelTest(t)}>🗑</button>
                     </div>
                   </td>
@@ -392,6 +396,13 @@ const Tests = ({ initialTab = 'tests' }) => {
         </div>
       )}
 
+      {params && (
+        <ParametersModal
+          test={params}
+          onClose={()=>setParams(null)}
+          onSaved={(n)=>{ setParams(null); toast_(n + " sub-test(s) saved"); }}
+        />
+      )}
       {view && <ViewTest test={view} onClose={()=>setView(null)} onEdit={t=>{setView(null);setEdit(t);}} />}
       {edit && <TestFormModal test={edit} categories={cats} onClose={()=>setEdit(null)} onSave={handleSaveTest} />}
       {addOpen && <TestFormModal categories={cats} onClose={()=>setAddOpen(false)} onSave={handleSaveTest} />}

@@ -4,6 +4,8 @@ import LabPending from './pages/LabPending.jsx';
 import LabDashboard from './pages/LabDashboard.jsx';
 import LabToday from './pages/LabToday.jsx';
 import LabBookings from './pages/LabBookings.jsx';
+import LabPatients from './pages/LabPatients.jsx';
+import LabAccounts from './pages/LabAccounts.jsx';
 import LabTesting from './pages/LabTesting.jsx';
 import LabReports from './pages/LabReports.jsx';
 import LabTests from './pages/LabTests.jsx';
@@ -45,9 +47,11 @@ export default function LabApp() {
         <Route index element={<LabDashboard />} />
         <Route path="today" element={<SectionRoute section="today"><LabToday /></SectionRoute>} />
         <Route path="bookings" element={<SectionRoute section="bookings"><LabBookings /></SectionRoute>} />
+        <Route path="patients" element={<SectionRoute section="patients"><LabPatients /></SectionRoute>} />
         <Route path="testing" element={<SectionRoute section="testing"><LabTesting /></SectionRoute>} />
         <Route path="reports" element={<SectionRoute section="reports"><LabReports /></SectionRoute>} />
         <Route path="tests" element={<SectionRoute section="tests"><LabTests /></SectionRoute>} />
+        <Route path="accounts" element={<SectionRoute section="accounts"><LabAccounts /></SectionRoute>} />
         <Route path="staff" element={<SectionRoute section="staff"><LabStaff /></SectionRoute>} />
         <Route path="settings" element={<SectionRoute section="settings"><LabSettings /></SectionRoute>} />
         <Route path="help" element={<SectionRoute section="help"><LabHelp /></SectionRoute>} />

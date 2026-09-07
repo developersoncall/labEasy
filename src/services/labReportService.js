@@ -84,7 +84,7 @@ export const labReportService = {
    * the second half of that, and it updates rather than inserting so a booking
    * never ends up with two report rows.
    */
-  async attachFile({ reportId, labId, booking, file, signedBy }) {
+  async attachFile({ reportId, labId, booking, file, signedBy, previousPath }) {
     const safeName = (file.name || `report-${booking.booking_ref || booking.id}.pdf`)
       .replace(/[^\w.\-]+/g, '_');
     const path = `lab/${labId}/${booking.booking_ref || booking.id}_${Date.now()}_${safeName}`;
@@ -114,6 +114,12 @@ export const labReportService = {
     if (error) {
       await supabase.storage.from(BUCKET).remove([path]).catch(() => {});
       throw error;
+    }
+
+    // A regenerated report supersedes the old file; drop it once the row is
+    // safely pointing at the new one.
+    if (previousPath && previousPath !== path) {
+      await supabase.storage.from(BUCKET).remove([previousPath]).catch(() => {});
     }
     return data;
   },

@@ -126,7 +126,7 @@ export default function LabTesting() {
             <Td className="text-right">
               <button
                 type="button"
-                className="btn-ghost mr-1 whitespace-nowrap px-3 py-1.5 text-xs"
+                className="btn-soft mr-1 whitespace-nowrap px-3 py-1.5 text-xs"
                 onClick={() => setDetailsFor(b)}
               >
                 <FaEye aria-hidden="true" /> Details

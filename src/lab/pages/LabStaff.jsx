@@ -106,7 +106,7 @@ export default function LabStaff() {
                 {!isSelf && (
                   <button
                     type="button"
-                    className="btn-ghost px-3 py-1.5 text-xs"
+                    className="btn-soft px-3 py-1.5 text-xs"
                     onClick={() =>
                       act(
                         () => labStaffService.setStatus(s.id, s.status === 'active' ? 'inactive' : 'active'),
@@ -141,7 +141,7 @@ export default function LabStaff() {
                 <Td className="text-right">
                   <button
                     type="button"
-                    className="btn-ghost px-3 py-1.5 text-xs"
+                    className="btn-soft px-3 py-1.5 text-xs"
                     onClick={() => act(() => labStaffService.revokeInvite(i.id), 'Invite revoked.')}
                   >
                     Revoke

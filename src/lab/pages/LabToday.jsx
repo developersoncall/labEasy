@@ -141,7 +141,7 @@ export default function LabToday() {
               <div className="flex items-center justify-end gap-1.5">
                 <button
                   type="button"
-                  className="btn-ghost whitespace-nowrap px-3 py-1.5 text-xs"
+                  className="btn-soft whitespace-nowrap px-3 py-1.5 text-xs"
                   onClick={() => { setDetailsAction(null); setDetailsFor(b); }}
                 >
                   <FaEye aria-hidden="true" /> Details
@@ -170,6 +170,7 @@ export default function LabToday() {
       <CreateBookingModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
+        labId={labId}
         tests={tests}
         testsLoading={testsLoading}
         onCreate={async (payload) => {

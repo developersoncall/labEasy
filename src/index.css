@@ -35,6 +35,16 @@
   .btn-danger {
     @apply btn bg-red-600 text-white shadow-sm hover:bg-red-700 active:scale-[0.98];
   }
+  .btn-soft {
+    @apply btn border border-gray-200 bg-white text-gray-700 shadow-[0_1px_2px_rgba(15,23,42,0.05)]
+      hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700
+      active:scale-[0.98];
+  }
+  /* Destructive, but still a real button: bordered, restrained until hovered. */
+  .btn-danger-soft {
+    @apply btn border border-red-200 bg-white text-red-600 shadow-[0_1px_2px_rgba(15,23,42,0.05)]
+      hover:border-red-300 hover:bg-red-50 hover:text-red-700 active:scale-[0.98];
+  }
   .btn-ghost {
     @apply btn text-gray-600 hover:bg-gray-100 hover:text-gray-900;
   }

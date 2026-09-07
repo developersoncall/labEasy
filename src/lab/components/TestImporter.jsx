@@ -18,7 +18,7 @@ import { Alert } from './ui.jsx';
  * Nothing is shared after the copy. Each becomes the lab's own row, editable
  * and priceable independently, which is the point.
  */
-export default function TestImporter({ labId, onClose, onImported }) {
+export default function TestImporter({ labId, existing = [], onClose, onImported }) {
   const [tab, setTab] = useState('templates');
   const [platform, setPlatform] = useState([]);
   const [platformParams, setPlatformParams] = useState({});
@@ -27,6 +27,13 @@ export default function TestImporter({ labId, onClose, onImported }) {
   const [picked, setPicked] = useState({}); // key -> { source, price }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Anything already in the catalogue is not on offer again — adding CBC
+  // twice would give the lab two tests to price and two to keep in step.
+  const alreadyHave = useMemo(
+    () => new Set(existing.map((t) => (t.name || '').trim().toLowerCase())),
+    [existing],
+  );
 
   useEffect(() => {
     if (tab !== 'platform' || platform.length) return;
@@ -62,11 +69,21 @@ export default function TestImporter({ labId, onClose, onImported }) {
             source: 'platform',
             raw: t,
           }));
-    if (!q) return list;
-    return list.filter(
+    const fresh = list.filter((r) => !alreadyHave.has(r.name.trim().toLowerCase()));
+    if (!q) return fresh;
+    return fresh.filter(
       (r) => r.name.toLowerCase().includes(q) || (r.category || '').toLowerCase().includes(q),
     );
-  }, [tab, platform, platformParams, search]);
+  }, [tab, platform, platformParams, search, alreadyHave]);
+
+  /** How many of this source the lab already has — shown, not silently dropped. */
+  const hiddenCount = useMemo(() => {
+    const all =
+      tab === 'templates'
+        ? TEST_TEMPLATES.map((t) => t.name)
+        : platform.map((t) => t.name);
+    return all.filter((n) => alreadyHave.has((n || '').trim().toLowerCase())).length;
+  }, [tab, platform, alreadyHave]);
 
   const toggle = (row) =>
     setPicked((p) => {
@@ -171,6 +188,13 @@ export default function TestImporter({ labId, onClose, onImported }) {
           </div>
         </div>
 
+        {hiddenCount > 0 && (
+          <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
+            {hiddenCount} already in your catalogue {hiddenCount === 1 ? 'is' : 'are'} hidden. Edit
+            {' '}{hiddenCount === 1 ? 'it' : 'them'} under Tests.
+          </p>
+        )}
+
         <p className="text-xs text-gray-500">
           {tab === 'templates'
             ? 'Ready-made panels with their sub-tests, units and reference ranges. Edit any of them after adding.'
@@ -181,9 +205,11 @@ export default function TestImporter({ labId, onClose, onImported }) {
           <p className="py-10 text-center text-sm text-gray-400">Loading…</p>
         ) : !rows.length ? (
           <p className="rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-400">
-            {tab === 'platform'
-              ? 'The platform catalogue is empty.'
-              : 'No template matches that search.'}
+            {hiddenCount > 0 && !search
+              ? 'Everything here is already in your catalogue.'
+              : tab === 'platform'
+                ? 'The platform catalogue is empty.'
+                : 'No template matches that search.'}
           </p>
         ) : (
           <ul className="max-h-[46vh] space-y-2 overflow-y-auto pr-1">

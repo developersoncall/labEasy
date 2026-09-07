@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  FaUpload, FaMoneyBillWave, FaPaperPlane, FaPlay, FaCheck, FaCheckDouble,
+  FaUpload, FaMoneyBillWave, FaPaperPlane, FaPlay, FaCheck, FaCheckDouble, FaFileSignature,
 } from 'react-icons/fa';
 import { labBookingService, isPaymentSettled } from '../../services/labBookingService.js';
 import { labReportService } from '../../services/labReportService.js';
@@ -41,11 +41,25 @@ export function nextStepFor(booking, role, report) {
   if (s === 'testing_in_progress' && can(ROLES.TESTER)) {
     return { kind: 'testdone', label: 'Mark testing completed', icon: <FaCheck />, tone: 'btn-secondary' };
   }
-  if (['testing_completed', 'report_pending', 'report_uploaded'].includes(s) && can(ROLES.REPORTIST)) {
+  // Testing is done: the report desk's turn. Without a report there is one to
+  // make; with a report the reportist hands it up rather than closing it.
+  if (['testing_completed', 'report_pending'].includes(s) && can(ROLES.REPORTIST)) {
     return report
-      ? { kind: 'close', label: 'Mark completed', icon: <FaCheckDouble />, tone: 'btn-secondary' }
-      : { kind: 'upload', label: 'Upload report', icon: <FaUpload />, tone: 'btn-primary' };
+      ? { kind: 'ready', label: 'Mark report ready', icon: <FaFileSignature />, tone: 'btn-primary' }
+      : { kind: 'upload', label: 'Create report', icon: <FaUpload />, tone: 'btn-primary' };
   }
+
+  // The report is out. Closing a booking is the Lab Admin's call alone —
+  // everyone else is waiting on that signature.
+  if (s === 'report_uploaded') {
+    if (isAdmin) {
+      return { kind: 'close', label: 'Mark completed', icon: <FaCheckDouble />, tone: 'btn-secondary' };
+    }
+    if (role === ROLES.REPORTIST) {
+      return { kind: 'blocked', label: 'Waiting on the Lab Admin to close it' };
+    }
+  }
+
   return null;
 }
 
@@ -58,6 +72,10 @@ export async function runSimpleStep(kind, booking, { userId, report } = {}) {
   if (kind === 'send') return labBookingService.sendToTesting(booking.id);
   if (kind === 'start') return labBookingService.startTesting(booking.id, userId);
   if (kind === 'testdone') return labBookingService.completeTesting(booking.id);
+  if (kind === 'ready') {
+    // The PDF is on the booking; hand it to the Lab Admin for sign-off.
+    return labBookingService.update(booking.id, { workflow_status: 'report_uploaded' });
+  }
   if (kind === 'close') {
     if (report) await labReportService.markCompleted(report.id);
     return labBookingService.markCompleted(booking.id);

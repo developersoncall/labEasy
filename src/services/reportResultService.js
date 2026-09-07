@@ -23,7 +23,14 @@ const isMissingSchema = (err) => {
   );
 };
 
-/** High / low against the numeric range, when the parameter defines one. */
+/**
+ * High / low against the numeric range, when the parameter defines one.
+ *
+ * The range has already been chosen for this patient's sex and age by
+ * resolveParameters() before it reaches here — so this only has to compare a
+ * number against the two bounds it was given, and a parameter with no bounds
+ * is simply never flagged.
+ */
 export function flagFor(value, param) {
   const n = Number(String(value).replace(/[, ]/g, ''));
   if (value === '' || value == null || Number.isNaN(n)) return '';
@@ -63,7 +70,7 @@ export const reportResultService = {
    * submits the complete sheet, so a partial diff would only invite rows that
    * disagree with what the tester saw on screen.
    */
-  async save({ booking, labId, rows, enteredBy, title }) {
+  async save({ booking, labId, rows, enteredBy, title, notes }) {
     // 1. the report record, so the booking shows up on the Reports desk
     let reportId = null;
     const { data: existing } = await supabase
@@ -76,8 +83,15 @@ export const reportResultService = {
       reportId = existing.id;
       await supabase
         .from('medical_reports')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', existing.id);
+        .update({ updated_at: new Date().toISOString(), interpretation: notes || '' })
+        .eq('id', existing.id)
+        // The interpretation column arrives with phase2.sql; without it the
+        // timestamp still has to be written.
+        .then((r) => (r.error && isMissingSchema(r.error)
+          ? supabase.from('medical_reports')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', existing.id)
+          : r));
     } else {
       const { data: created, error: repErr } = await supabase
         .from('medical_reports')
@@ -116,9 +130,21 @@ export const reportResultService = {
       entered_by: enteredBy || null,
     }));
 
+    // Method and the standing comment are snapshotted too, so a report reads
+    // the same way in five years even after the catalogue moves on.
+    const enriched = payload.map((row, i) => ({
+      ...row,
+      method: rows[i].method || '',
+      interpretation: rows[i].interpretation || '',
+    }));
+
     if (payload.length) {
-      const { error } = await supabase.from('report_values').insert(payload);
-      if (error) throw error;
+      const { error } = await supabase.from('report_values').insert(enriched);
+      if (error) {
+        if (!isMissingSchema(error)) throw error;
+        const retry = await supabase.from('report_values').insert(payload);
+        if (retry.error) throw retry.error;
+      }
     }
     return { reportId, count: payload.length };
   },

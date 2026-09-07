@@ -98,12 +98,12 @@ export default function LabDocuments() {
                       {` · ${new Date(d.created_at).toLocaleDateString()}`}
                     </p>
                   </div>
-                  <button type="button" className="btn-ghost px-2.5 py-1.5 text-xs" onClick={() => open(d)}>
+                  <button type="button" className="btn-soft px-2.5 py-1.5 text-xs" onClick={() => open(d)}>
                     <FaExternalLinkAlt aria-hidden="true" /> Open
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                    className="btn-danger-soft px-2.5 py-1.5 text-xs"
                     onClick={() => setConfirmDelete(d)}
                     aria-label={`Remove ${d.file_name}`}
                   >

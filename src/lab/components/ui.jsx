@@ -115,12 +115,18 @@ export function Progress({ status }) {
 /* ----------------------------------------------------------------- stat -- */
 
 export function Stat({ label, value, hint, tone = 'primary', icon, to }) {
+  // Colour names and meaning names both resolve here, so a screen can say
+  // what a number *is* ("warning") without knowing which hue that maps to.
   const tones = {
     primary: 'bg-primary-50 text-primary-600',
     amber: 'bg-amber-50 text-amber-600',
     emerald: 'bg-emerald-50 text-emerald-600',
     indigo: 'bg-indigo-50 text-indigo-600',
     slate: 'bg-slate-100 text-slate-600',
+    success: 'bg-emerald-50 text-emerald-600',
+    warning: 'bg-amber-50 text-amber-600',
+    danger: 'bg-rose-50 text-rose-600',
+    muted: 'bg-slate-100 text-slate-600',
   };
 
   const inner = (

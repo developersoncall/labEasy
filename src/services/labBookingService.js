@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/supabase.js';
+import { billingService } from './billingService.js';
 
 /**
  * The booking pipeline, as seen by lab staff and by the platform admin.
@@ -101,12 +102,50 @@ export function stageProgress(status) {
 
 export const todayISO = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD, local
 
-const FIELDS =
+/**
+ * Named columns rather than `*`, because a booking row carries a lot of legacy
+ * width. The billing and patient columns arrive with phase2.sql, so they live
+ * in their own list: if that migration has not been run yet, the first query
+ * fails with "column does not exist" and every screen falls back to the core
+ * set rather than showing nothing at all.
+ */
+const CORE_FIELDS =
   'id, booking_ref, lab_id, user_id, items, collection_type, scheduled_date, scheduled_time, ' +
   'patient_name, patient_age, patient_gender, patient_phone, patient_email, address, city, ' +
   'total_amount, amount_paid, status, workflow_status, payment_status, payment_method, source, ' +
   'assigned_tester, assigned_reportist, created_by, staff_notes, sent_to_testing_at, ' +
   'testing_started_at, testing_completed_at, report_uploaded_at, completed_at, created_at';
+
+const PHASE2_FIELDS =
+  'patient_id, bill_no, billed_at, subtotal_amount, discount, discount_type, ' +
+  'discount_reason, tax_amount, amount_due';
+
+/** Flipped once, the first time the database says those columns are not there. */
+let phase2 = true;
+const FIELD_LIST = () => (phase2 ? `${CORE_FIELDS}, ${PHASE2_FIELDS}` : CORE_FIELDS);
+
+const isMissingColumn = (err) => {
+  const msg = err?.message || '';
+  return (
+    ['42703', 'PGRST204', 'PGRST205'].includes(err?.code) ||
+    /does not exist/i.test(msg) ||
+    /schema cache/i.test(msg)
+  );
+};
+
+/**
+ * Run a query, and if the billing columns are what it choked on, drop them and
+ * run it once more. One retry, never a loop.
+ */
+async function withFields(run) {
+  const first = await run(FIELD_LIST());
+  if (!first.error) return first;
+  if (phase2 && isMissingColumn(first.error)) {
+    phase2 = false;
+    return run(CORE_FIELDS);
+  }
+  return first;
+}
 
 export const labBookingService = {
   /** Receptionist: create a counter booking for this lab. */
@@ -133,8 +172,52 @@ export const labBookingService = {
       source: payload.source || 'walk_in',
       staff_notes: payload.notes || '',
     };
-    const { data, error } = await supabase.from('booked_tests').insert(row).select(FIELDS).single();
-    if (error) throw error;
+
+    // Billing and the patient link only exist after phase2.sql. Sending them
+    // to a database that has not run it would fail the whole insert, so they
+    // are added only when the columns are known to be there.
+    if (phase2) {
+      Object.assign(row, {
+        patient_id: payload.patientId || null,
+        subtotal_amount: Number(payload.subtotalAmount ?? payload.totalAmount ?? 0),
+        discount: Number(payload.discount || 0),
+        discount_type: payload.discountType || 'amount',
+        discount_reason: payload.discountReason || '',
+      });
+    }
+
+    const { data, error } = await withFields((f) =>
+      supabase.from('booked_tests').insert(row).select(f).single(),
+    );
+    if (error) {
+      // The retry above re-selects, but an insert that carried unknown columns
+      // has to be sent again without them.
+      if (isMissingColumn(error)) {
+        phase2 = false;
+        ['patient_id', 'subtotal_amount', 'discount', 'discount_type', 'discount_reason']
+          .forEach((k) => delete row[k]);
+        const retry = await supabase.from('booked_tests').insert(row).select(CORE_FIELDS).single();
+        if (retry.error) throw retry.error;
+        return retry.data;
+      }
+      throw error;
+    }
+
+    // Money taken at the counter becomes the first line of the bill's ledger.
+    // The trigger recomputes amount_paid from it, arriving at the figure just
+    // written — so this adds history without changing the total.
+    if (phase2 && Number(payload.amountPaid || 0) > 0) {
+      await billingService
+        .record({
+          bookingId: data.id,
+          labId,
+          amount: payload.amountPaid,
+          method: payload.paymentMethod || 'cash',
+          note: 'Collected at booking',
+          receivedBy: payload.userId || null,
+        })
+        .catch(() => {});
+    }
     return data;
   },
 
@@ -142,7 +225,7 @@ export const labBookingService = {
   async listForLab(labId, { statuses, date, search, limit = 200 } = {}) {
     let q = supabase
       .from('booked_tests')
-      .select(FIELDS)
+      .select(FIELD_LIST())
       .eq('lab_id', labId)
       .order('scheduled_date', { ascending: false })
       .order('created_at', { ascending: false })
@@ -168,7 +251,7 @@ export const labBookingService = {
   async listAllForDate(date) {
     const { data, error } = await supabase
       .from('booked_tests')
-      .select(`${FIELDS}, labs:lab_id ( id, name, lab_ref, city )`)
+      .select(`${FIELD_LIST()}, labs:lab_id ( id, name, lab_ref, city )`)
       .eq('scheduled_date', date)
       .order('scheduled_time', { ascending: true });
     if (error) throw error;
@@ -179,7 +262,7 @@ export const labBookingService = {
   async get(id) {
     const { data, error } = await supabase
       .from('booked_tests')
-      .select(`${FIELDS}, labs:lab_id ( id, name, lab_ref )`)
+      .select(`${FIELD_LIST()}, labs:lab_id ( id, name, lab_ref )`)
       .eq('id', id)
       .maybeSingle();
     if (error) throw error;
@@ -192,7 +275,7 @@ export const labBookingService = {
       .from('booked_tests')
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select(FIELDS)
+      .select(FIELD_LIST())
       .single();
     if (error) throw error;
     return data;
