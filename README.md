@@ -1,7 +1,10 @@
 # Medis — Trusted Healthcare, Simplified
 
 Medis is a full-featured healthcare web app where patients can **find doctors, book clinic or video consultations, order diagnostic tests and health packages with home sample collection, read health articles, and manage their entire medical life** (appointments, lab bookings, reports, prescriptions, favourites and notifications) from a personal dashboard.
+VITE_SUPABASE_URL=https://jojwwxgdlztnttlikzya.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impvand3eGdkbHp0bnR0bGlrenlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNTE2MDEsImV4cCI6MjA5ODgyNzYwMX0.6VCtIzo1BSsev7ON3staUdq6Ek7LM6Cn38hh_AQBums
 
+# Demo login cards on /login a
 The app is a Vite + React 18 single-page application backed entirely by **Supabase** (Postgres + Auth + Storage). Every catalog item and every user action reads from and writes to Supabase — there is no bundled data. Until you connect a project (see [Supabase Setup](#-supabase-setup)), the app shows a friendly setup screen instead of the site.
 
 > The same Supabase database also powers the separate **Medis Diagnostics admin panel** (`labadmin-b1090.web.app`). See [Admin panel compatibility](#admin-panel-compatibility).

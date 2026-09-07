@@ -14,8 +14,6 @@ import { labBookingService } from '../../services/labBookingService.js';
 import { buildReportPdf, groupRows } from '../report/reportPdf.js';
 import { ROLES } from '../../config/platform.js';
 import { labStaffService } from '../../services/labStaffService.js';
-import { composeRange } from '../../config/units.js';
-import UnitSelect from './UnitSelect.jsx';
 import { Alert } from './ui.jsx';
 
 /**
@@ -128,48 +126,6 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
 
   const setValue = (i, value) =>
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, value, flag: flagFor(value, r) } : r)));
-  /** Patch any field on a row, re-flagging against its (possibly new) range. */
-  const setRow = (i, patch) =>
-    setRows((rs) =>
-      rs.map((r, idx) => {
-        if (idx !== i) return r;
-        const next = { ...r, ...patch };
-        return { ...next, flag: flagFor(next.value, next) };
-      }),
-    );
-
-  /** A bound typed here also rewrites what the report will print. */
-  const setBound = (i, key, v) =>
-    setRows((rs) =>
-      rs.map((r, idx) => {
-        if (idx !== i) return r;
-        const next = { ...r, [key]: v === '' ? null : v };
-        const kind = next.refLow != null && next.refHigh != null
-          ? 'between'
-          : next.refHigh != null ? 'max' : next.refLow != null ? 'min' : 'text';
-        const refRange = composeRange({
-          kind, low: next.refLow, high: next.refHigh, text: next.refRange,
-        });
-        return { ...next, refRange, flag: flagFor(next.value, next) };
-      }),
-    );
-
-  /** Add a line to a test the catalogue has no parameters for. */
-  const addRowTo = (group) =>
-    setRows((rs) => {
-      const lastIndex = rs.map((r) => r.testName).lastIndexOf(group.testName);
-      const row = {
-        testId: group.rows[0]?.testId ?? null,
-        testName: group.testName,
-        parameterId: null,
-        parameterName: '',
-        unit: '', refRange: '', refLow: null, refHigh: null,
-        groupLabel: group.groupLabel || '',
-        value: '', flag: '',
-      };
-      const at = lastIndex < 0 ? rs.length : lastIndex + 1;
-      return [...rs.slice(0, at), row, ...rs.slice(at)];
-    });
 
   const filled = rows.filter((r) => String(r.value).trim() !== '').length;
   const preparedBy = profile?.full_name || user?.email || 'Authorised signatory';
@@ -324,7 +280,7 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
                         <thead className="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
                           <tr>
                             <th className="px-3 py-2 text-left font-semibold">Parameter</th>
-                            <th className="w-32 px-3 py-2 text-left font-semibold">Result</th>
+                            <th className="w-32 px-3 py-2 text-center font-semibold">Result</th>
                             <th className="w-20 px-3 py-2 text-left font-semibold">Unit</th>
                             <th className="w-40 px-3 py-2 text-left font-semibold">Reference</th>
                             <th className="w-24 px-3 py-2 text-left font-semibold">Flag</th>
@@ -333,81 +289,26 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
                         <tbody className="divide-y divide-gray-100">
                           {g.rows.map((r) => {
                             const index = rows.indexOf(r);
-                            // A row the catalogue defined is fixed; an ad-hoc
-                            // one is editable here, so a test booked from the
-                            // shared catalogue can still carry a unit and a
-                            // range — and therefore a flag.
-                            const adhoc = !r.parameterId;
                             return (
-                              <tr key={`${r.testId}-${r.parameterName}-${index}`} className="align-top">
-                                <td className="px-2 py-1.5 text-gray-800">
-                                  {adhoc ? (
-                                    <input
-                                      className="input-field h-9 py-1 text-sm"
-                                      value={r.parameterName}
-                                      onChange={(e) => setRow(index, { parameterName: e.target.value })}
-                                      placeholder="Parameter name"
-                                      aria-label="Parameter name"
-                                    />
-                                  ) : (
-                                    <span className="block pt-2">{r.parameterName}</span>
-                                  )}
-                                </td>
+                              <tr key={`${r.testId}-${r.parameterName}-${index}`}>
+                                <td className="px-3 py-2 text-gray-800">{r.parameterName}</td>
                                 <td className="px-2 py-1.5">
                                   <input
-                                    className="input-field h-9 py-1 text-sm"
+                                    className="input-field h-9 py-1 text-center text-sm"
                                     value={r.value}
                                     onChange={(e) => setValue(index, e.target.value)}
                                     placeholder="—"
                                     aria-label={`Result for ${r.parameterName}`}
                                   />
                                 </td>
-                                <td className="px-2 py-1.5">
-                                  {adhoc ? (
-                                    <UnitSelect
-                                      className="h-9 w-24 py-1 text-sm"
-                                      value={r.unit}
-                                      onChange={(v) => setRow(index, { unit: v })}
-                                    />
+                                <td className="px-3 py-2 text-gray-500">{r.unit || '—'}</td>
+                                <td className="px-3 py-2 text-gray-500">{r.refRange || '—'}</td>
+                                <td className="px-3 py-2">
+                                  {r.flag ? (
+                                    <span className={`badge ${FLAG_STYLES[r.flag]}`}>{FLAG_LABELS[r.flag]}</span>
                                   ) : (
-                                    <span className="block pt-2 text-gray-500">{r.unit || '—'}</span>
+                                    <span className="text-xs text-gray-300">—</span>
                                   )}
-                                </td>
-                                <td className="px-2 py-1.5">
-                                  {adhoc ? (
-                                    <div className="flex items-center gap-1">
-                                      <input
-                                        className="input-field h-9 w-16 py-1 text-sm"
-                                        type="number"
-                                        step="any"
-                                        placeholder="low"
-                                        value={r.refLow ?? ''}
-                                        onChange={(e) => setBound(index, 'refLow', e.target.value)}
-                                        aria-label="Reference low"
-                                      />
-                                      <span className="text-gray-300">–</span>
-                                      <input
-                                        className="input-field h-9 w-16 py-1 text-sm"
-                                        type="number"
-                                        step="any"
-                                        placeholder="high"
-                                        value={r.refHigh ?? ''}
-                                        onChange={(e) => setBound(index, 'refHigh', e.target.value)}
-                                        aria-label="Reference high"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <span className="block pt-2 text-gray-500">{r.refRange || '—'}</span>
-                                  )}
-                                </td>
-                                <td className="px-2 py-1.5">
-                                  <span className="block pt-1.5">
-                                    {r.flag ? (
-                                      <span className={`badge ${FLAG_STYLES[r.flag]}`}>{FLAG_LABELS[r.flag]}</span>
-                                    ) : (
-                                      <span className="text-xs text-gray-300">—</span>
-                                    )}
-                                  </span>
                                 </td>
                               </tr>
                             );
@@ -415,13 +316,6 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
                         </tbody>
                       </table>
                     </div>
-                    <button
-                      type="button"
-                      className="mt-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700"
-                      onClick={() => addRowTo(g)}
-                    >
-                      + Add a parameter to {g.testName}
-                    </button>
                   </section>
                 ))}
               </div>
