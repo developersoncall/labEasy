@@ -82,26 +82,39 @@ export const billingService = {
    * Record money taken. The booking's paid total and stage follow from the
    * database trigger, so nothing else needs updating here.
    */
-  async record({ bookingId, labId, amount, method, reference, note, isRefund = false, receivedBy }) {
+  async record({
+    bookingId, labId, amount, method, reference, note,
+    isRefund = false, receivedBy, paymentAccountId,
+  }) {
     const value = Number(amount);
     if (!Number.isFinite(value) || value <= 0) throw new Error('Enter an amount greater than zero.');
 
+    const row = {
+      booking_id: bookingId,
+      lab_id: labId,
+      amount: value,
+      method: method || 'cash',
+      reference: reference || '',
+      note: note || '',
+      is_refund: !!isRefund,
+      received_by: receivedBy || null,
+    };
+
     const { data, error } = await supabase
       .from('booking_payments')
-      .insert({
-        booking_id: bookingId,
-        lab_id: labId,
-        amount: value,
-        method: method || 'cash',
-        reference: reference || '',
-        note: note || '',
-        is_refund: !!isRefund,
-        received_by: receivedBy || null,
-      })
+      .insert(paymentAccountId ? { ...row, payment_account_id: paymentAccountId } : row)
       .select('*')
       .single();
-    if (error) throw error;
-    return data;
+    if (!error) return data;
+
+    // Which account the money went into is a nice-to-have that arrives with
+    // payment-options.sql. Never let it stop a payment being recorded.
+    if (paymentAccountId && isMissingSchema(error)) {
+      const retry = await supabase.from('booking_payments').insert(row).select('*').single();
+      if (retry.error) throw retry.error;
+      return retry.data;
+    }
+    throw error;
   },
 
   /** Lab Admin only — RLS refuses this for anyone else. */
@@ -169,7 +182,7 @@ export const billingService = {
       .from('booked_tests')
       .select(
         'id, booking_ref, bill_no, patient_name, patient_phone, scheduled_date, ' +
-          'total_amount, amount_paid, payment_status, workflow_status',
+          'total_amount, amount_paid, amount_due, payment_status, workflow_status',
       )
       .eq('lab_id', labId)
       .not('payment_status', 'in', '("paid","waived")')

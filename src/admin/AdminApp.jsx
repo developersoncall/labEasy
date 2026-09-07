@@ -22,6 +22,7 @@ import Reports       from './pages/Reports/index';
 import Support       from './pages/Support/index';
 import Analytics     from './pages/Analytics/index';
 import Settings      from './pages/Settings/index';
+import Payments      from './pages/Payments/index';
 import Blogs         from './pages/Blogs/index';
 
 /**
@@ -65,6 +66,7 @@ const AdminApp = () => {
       case 'reports':        return <Reports onChange={refreshCounts} />;
       case 'analytics':      return <Analytics />;
       case 'settings':       return <Settings />;
+      case 'payments':       return <Payments />;
       case 'support':
       case 'feedback':       return <Support onChange={refreshCounts} />;
       default:               return <Dashboard />;

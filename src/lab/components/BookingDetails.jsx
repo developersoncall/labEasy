@@ -1,18 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   FaFilePdf, FaDownload, FaTrash, FaSyncAlt, FaCheck, FaCircle, FaTimesCircle, FaClipboardList,
+  FaPaperPlane,
 } from 'react-icons/fa';
 import Modal from '../../components/common/Modal.jsx';
 import PaymentModal from './PaymentModal.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
 import ReportBuilder from './ReportBuilder.jsx';
 import { nextStepFor, runSimpleStep } from './nextStep.jsx';
+import ShareReportModal from './ShareReportModal.jsx';
 import { StatusPill, PaymentPill, itemsLabel } from './ui.jsx';
 import useAuth from '../../hooks/useAuth.js';
 import { ROLES } from '../../config/platform.js';
 import { labBookingService, STATUS_LABELS, WORKFLOW_STAGES } from '../../services/labBookingService.js';
 import { labReportService } from '../../services/labReportService.js';
 import { reportResultService } from '../../services/reportResultService.js';
+import { dueOf } from '../../services/billingService.js';
 import { formatCurrency } from '../../utils/helpers.js';
 
 /**
@@ -168,6 +171,9 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showLog, setShowLog] = useState(false);
   const [buildOpen, setBuildOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  // Derived rather than stored, so it can never disagree with the ledger.
+  const due = dueOf(booking);
 
   const refresh = useCallback(async () => {
     if (!booking) return;
@@ -329,45 +335,32 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
                 <p className="px-4 py-3 text-sm text-gray-400">{itemsLabel(booking.items)}</p>
               )}
               <dl className="grid gap-4 border-t border-gray-100 px-4 py-4 sm:grid-cols-3">
+                <Field label="Bill no.">
+                  <span className="font-mono text-xs">{booking.bill_no}</span>
+                </Field>
+                {Number(booking.discount || 0) > 0 && (
+                  <Field label="Discount">
+                    <span className="text-emerald-700">
+                      {booking.discount_type === 'percent'
+                        ? `${booking.discount}%`
+                        : formatCurrency(booking.discount)}
+                    </span>
+                    {booking.discount_reason && (
+                      <span className="block text-xs text-gray-400">{booking.discount_reason}</span>
+                    )}
+                  </Field>
+                )}
                 <Field label="Paid">{formatCurrency(booking.amount_paid)}</Field>
+                <Field label="Balance due">
+                  {due > 0 ? (
+                    <span className="font-semibold text-amber-700">{formatCurrency(due)}</span>
+                  ) : (
+                    <span className="text-emerald-700">Settled</span>
+                  )}
+                </Field>
                 <Field label="Method">{booking.payment_method}</Field>
                 <Field label="Stage">{STATUS_LABELS[booking.workflow_status]}</Field>
               </dl>
-            </Panel>
-
-            {/* ---- report ---- */}
-            <Panel title="Report">
-              {report ? (
-                <div className="flex flex-wrap items-center gap-3">
-                  <FaFilePdf className="shrink-0 text-lg text-primary-600" aria-hidden="true" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">
-                      {report.file_name || report.title || report.report_ref}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {report.report_ref}
-                      {report.created_at ? ` · ${new Date(report.created_at).toLocaleString()}` : ''}
-                      {report.file_size ? ` · ${Math.round(report.file_size / 1024)} KB` : ''}
-                    </p>
-                  </div>
-                  <button type="button" className="btn-soft px-3 py-1.5 text-xs" onClick={() => download(report)}>
-                    <FaDownload aria-hidden="true" /> Open
-                  </button>
-                  {canReplaceReport && (
-                    <button
-                      type="button"
-                      className="btn-outline px-3 py-1.5 text-xs"
-                      onClick={() => setBuildOpen(true)}
-                    >
-                      <FaSyncAlt aria-hidden="true" /> Replace report
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <p className="rounded-lg border border-dashed border-gray-200 px-4 py-3 text-sm text-gray-400">
-                  No report uploaded yet.
-                </p>
-              )}
             </Panel>
 
             {booking.staff_notes && (
@@ -442,6 +435,56 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
           </aside>
         </div>
 
+        {/* ---- report: full width, because this is the thing the booking is for ---- */}
+        <Panel title="Report">
+          {report ? (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-lg text-primary-600">
+                <FaFilePdf aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1 basis-64">
+                <p className="truncate text-sm font-medium text-gray-900">
+                  {report.file_name || report.title || report.report_ref}
+                </p>
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-gray-400">
+                  <span className="font-mono">{report.report_ref}</span>
+                  {report.created_at && <span>· {new Date(report.created_at).toLocaleString()}</span>}
+                  {report.file_size ? <span>· {Math.round(report.file_size / 1024)} KB</span> : null}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-soft whitespace-nowrap px-3.5 py-2 text-xs"
+                  onClick={() => download(report)}
+                >
+                  <FaDownload aria-hidden="true" /> Open
+                </button>
+                <button
+                  type="button"
+                  className="btn-soft whitespace-nowrap px-3.5 py-2 text-xs"
+                  onClick={() => setShareOpen(true)}
+                >
+                  <FaPaperPlane aria-hidden="true" /> Send
+                </button>
+                {canReplaceReport && (
+                  <button
+                    type="button"
+                    className="btn-outline whitespace-nowrap px-3.5 py-2 text-xs"
+                    onClick={() => setBuildOpen(true)}
+                  >
+                    <FaSyncAlt aria-hidden="true" /> Replace report
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-lg border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-400">
+              No report yet. It appears here once the results are entered and approved.
+            </p>
+          )}
+        </Panel>
+
         <button type="button" className="btn-outline w-full" onClick={onClose}>
           Close
         </button>
@@ -455,6 +498,15 @@ export default function BookingDetails({ booking, onClose, onChanged, initialAct
         onClose={() => setPaymentOpen(false)}
         onSave={async () => { await onChanged?.(); }}
       />
+
+      {shareOpen && report && (
+        <ShareReportModal
+          booking={booking}
+          report={report}
+          onClose={() => setShareOpen(false)}
+          onSent={onChanged}
+        />
+      )}
 
       {buildOpen && (
         <ReportBuilder

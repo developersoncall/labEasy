@@ -93,16 +93,10 @@ export default function LabPatients() {
             <Spinner />
           ) : (
             <TableFrame
-              head={
-                <tr>
-                  <th className="px-4 py-3 text-left">Patient</th>
-                  <th className="px-4 py-3 text-left">Contact</th>
-                  <th className="px-4 py-3 text-left">Age / Sex</th>
-                  <th className="px-4 py-3 text-left">Visits</th>
-                  <th className="px-4 py-3 text-left">Last seen</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              }
+              head={[
+                'Patient', 'Contact', 'Age / Sex', 'Visits', 'Last seen',
+                { label: 'Actions', align: 'right' },
+              ]}
               empty={rows.length === 0}
               emptyIcon="🧑‍⚕️"
               emptyText={

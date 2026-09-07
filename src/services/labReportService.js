@@ -124,6 +124,23 @@ export const labReportService = {
     return data;
   },
 
+  /**
+   * One report row, with the token the QR code on the printed copy resolves
+   * to. The token column arrives with phase2.sql, so a database without it
+   * simply yields a report that has no verification link.
+   */
+  async get(id) {
+    const { data, error } = await supabase
+      .from('medical_reports')
+      .select(`${FIELDS}, public_token`)
+      .eq('id', id)
+      .maybeSingle();
+    if (!error) return data;
+    const plain = await supabase.from('medical_reports').select(FIELDS).eq('id', id).maybeSingle();
+    if (plain.error) throw plain.error;
+    return plain.data;
+  },
+
   /** Reportist: sign the report off. */
   async markCompleted(id) {
     const { data, error } = await supabase

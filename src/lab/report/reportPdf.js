@@ -33,12 +33,58 @@ export function groupRows(rows) {
   return groups;
 }
 
+/**
+ * Fetch an image and hand jsPDF something it can embed.
+ *
+ * Returns null rather than throwing: a laboratory whose logo failed to load
+ * should still get its report. A missing signature is a cosmetic problem; a
+ * report that would not generate is a clinical one.
+ */
+async function loadImage(url) {
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const dataUrl = await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+    const size = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    });
+    if (!size?.w) return null;
+    return { dataUrl, ...size };
+  } catch {
+    return null;
+  }
+}
+
+/** The QR a doctor can scan to confirm the lab really issued this report. */
+async function loadQr(url) {
+  if (!url) return null;
+  try {
+    const QRCode = (await import('qrcode')).default;
+    return await QRCode.toDataURL(url, { margin: 0, width: 240, errorCorrectionLevel: 'M' });
+  } catch {
+    return null;
+  }
+}
+
 export async function buildReportPdf({
-  lab, booking, rows, preparedBy, approvedBy, notes,
+  lab, booking, rows, preparedBy, approvedBy, notes, comments = [], verifyLink,
 }) {
-  const [{ jsPDF }, autoTableModule] = await Promise.all([
+  const [{ jsPDF }, autoTableModule, logo, signature, qr] = await Promise.all([
     import('jspdf'),
     import('jspdf-autotable'),
+    loadImage(lab?.logoUrl),
+    loadImage(lab?.signatureUrl),
+    loadQr(verifyLink),
   ]);
   const autoTable = autoTableModule.default || autoTableModule.autoTable;
 
@@ -61,14 +107,23 @@ export async function buildReportPdf({
   const headed = new Set();
   const header = () => {
     // The laboratory's own letterhead — never the platform's name.
+    let textX = M;
+    if (logo) {
+      // Fit inside a 16 mm band, keeping the aspect ratio whatever was uploaded.
+      const h = 14;
+      const w = Math.min((logo.w / logo.h) * h, 34);
+      doc.addImage(logo.dataUrl, M, 8, w, h, undefined, 'FAST');
+      textX = M + w + 5;
+    }
+
     doc.setTextColor(...INK).setFont('times', 'bold').setFontSize(17);
-    doc.text(labName, M, 16);
+    doc.text(labName, textX, 16);
 
     const sub = [lab?.address, lab?.city].filter(Boolean).join(', ');
     const contact = [lab?.phone, lab?.email].filter(Boolean).join('  ·  ');
     doc.setFont('helvetica', 'normal').setFontSize(7.8).setTextColor(...MUTED);
-    if (sub) doc.text(doc.splitTextToSize(sub, CONTENT * 0.6)[0], M, 21);
-    if (contact) doc.text(contact, M, 25);
+    if (sub) doc.text(doc.splitTextToSize(sub, CONTENT * 0.5)[0], textX, 21);
+    if (contact) doc.text(contact, textX, 25);
 
     doc.setFont('helvetica', 'bold').setFontSize(8).setTextColor(...BRAND);
     doc.text('LABORATORY REPORT', W - M, 16, { align: 'right' });
@@ -90,7 +145,11 @@ export async function buildReportPdf({
     doc.setDrawColor(...RULE).setLineWidth(0.3);
     doc.line(M, H - 15, W - M, H - 15);
     doc.setTextColor(...MUTED).setFont('helvetica', 'normal').setFontSize(7);
-    doc.text('Results relate only to the sample tested · Please correlate clinically', M, H - 10.5);
+    doc.text(
+      lab?.report_footer
+        || 'Results relate only to the sample tested · Please correlate clinically',
+      M, H - 10.5,
+    );
     doc.text(`${pageNo} / ${pageCount}`, W - M, H - 10.5, { align: 'right' });
   };
 
@@ -158,7 +217,9 @@ export async function buildReportPdf({
       startY: y,
       head: [['Investigation', 'Result', 'Unit', 'Reference range', 'Flag']],
       body: group.rows.map((r) => [
-        r.parameterName,
+        // The method belongs under the analyte it qualifies, the way a printed
+        // report sets it — not in a column of its own that is blank for most.
+        r.method ? `${r.parameterName}\n${r.method}` : r.parameterName,
         String(r.value ?? '') || '—',
         r.unit || '',
         r.refRange || '',
@@ -191,13 +252,16 @@ export async function buildReportPdf({
       // Out-of-range values earn the only colour on the page.
       didParseCell: (data) => {
         if (data.section !== 'body') return;
-        const flag = group.rows[data.row.index]?.flag;
+        const row = group.rows[data.row.index];
+        const flag = row?.flag;
         const colour = flag === 'low' ? LOW : (flag === 'high' || flag === 'abnormal') ? HIGH : null;
         if (colour && (data.column.index === 1 || data.column.index === 4)) {
           data.cell.styles.textColor = colour;
           data.cell.styles.fontStyle = 'bold';
         }
         if (data.column.index === 3) data.cell.styles.textColor = MUTED;
+        // The method line rides along under the name at a quieter size.
+        if (data.column.index === 0 && row?.method) data.cell.styles.fontSize = 8.2;
       },
       willDrawPage: () => { headerOnce(); },
     });
@@ -206,28 +270,46 @@ export async function buildReportPdf({
   });
 
   // --------------------------------------------------------------- notes --
-  if (notes) {
+  //  The pathologist's own words first, then any standing comment the
+  //  catalogue attaches to a parameter that came back out of range.
+  const allNotes = [notes, ...comments].filter(Boolean);
+  if (allNotes.length) {
     if (y > H - 50) { doc.addPage(); headerOnce(); y = 36; }
     doc.setFont('helvetica', 'bold').setFontSize(9.5).setTextColor(...BRAND);
     doc.text('INTERPRETATION', M, y);
     y += 5;
     doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...INK);
-    const lines = doc.splitTextToSize(notes, CONTENT);
-    doc.text(lines, M, y);
-    y += lines.length * 4.6 + 6;
+    allNotes.forEach((note) => {
+      const lines = doc.splitTextToSize(note, CONTENT);
+      if (y + lines.length * 4.6 > H - 45) { doc.addPage(); headerOnce(); y = 36; }
+      doc.text(lines, M, y);
+      y += lines.length * 4.6 + 2.5;
+    });
+    y += 4;
   }
 
   // ------------------------------------------------------------- sign-off --
-  if (y > H - 42) { doc.addPage(); headerOnce(); y = 40; }
-  y = Math.max(y + 12, H - 40);
+  if (y > H - 46) { doc.addPage(); headerOnce(); y = 40; }
+  y = Math.max(y + 12, H - 44);
 
+  // The signature image sits on the rule, not above a second one.
   const signW = 62;
+  if (signature) {
+    const h = 12;
+    const w = Math.min((signature.w / signature.h) * h, signW - 6);
+    doc.addImage(signature.dataUrl, W - M - w, y - h - 1, w, h, undefined, 'FAST');
+  }
+
   doc.setDrawColor(...MUTED).setLineWidth(0.3);
   doc.line(W - M - signW, y, W - M, y);
   doc.setFont('helvetica', 'bold').setFontSize(9).setTextColor(...INK);
   doc.text(approvedBy || labName, W - M, y + 4.6, { align: 'right' });
   doc.setFont('helvetica', 'normal').setFontSize(7.5).setTextColor(...MUTED);
-  doc.text('Approved by · Lab Admin', W - M, y + 8.8, { align: 'right' });
+  doc.text(
+    [lab?.signatory_designation || 'Lab Admin', lab?.signatory_reg_no]
+      .filter(Boolean).join(' · '),
+    W - M, y + 8.8, { align: 'right' },
+  );
 
   if (preparedBy) {
     doc.setFont('helvetica', 'normal').setFontSize(7.5).setTextColor(...MUTED);
@@ -235,6 +317,15 @@ export async function buildReportPdf({
   }
   doc.setFont('helvetica', 'normal').setFontSize(7.5).setTextColor(...MUTED);
   doc.text('*** End of report ***', M, y + 8.8);
+
+  // The QR verifies the report; it never carries the report.
+  if (qr) {
+    const size = 17;
+    doc.addImage(qr, M, y - size - 3, size, size, undefined, 'FAST');
+    doc.setFont('helvetica', 'normal').setFontSize(6.4).setTextColor(...MUTED);
+    doc.text('Scan to verify', M + size + 2, y - size + 4);
+    doc.text('this report', M + size + 2, y - size + 7);
+  }
 
   // Footers need the final page count, so they are stamped last.
   const pages = doc.internal.getNumberOfPages();

@@ -25,7 +25,12 @@ const NAV = [
   ]},
   { group:'Reports', items:[{key:'reports',icon:'📄',label:'Reports',badgeKey:'reports'}]},
   { group:'Analytics', items:[{key:'analytics',icon:'📈',label:'Analytics & Reports'}]},
-  { group:'System', items:[{key:'settings',icon:'⚙️',label:'App Settings'},{key:'support',icon:'🆘',label:'Support Tickets',badgeKey:'support'}]},
+  { group:'System', items:[
+    {key:'settings',icon:'⚙️',label:'App Settings'},
+    // Where patients send money: UPI, a mobile number, a scan-to-pay QR.
+    {key:'payments',icon:'💳',label:'Payment Options'},
+    {key:'support',icon:'🆘',label:'Support Tickets',badgeKey:'support'},
+  ]},
 ];
 
 const Sidebar = ({ currentPage, onNavigate, open, onClose, onLogout, onViewWebsite, counts = {}, adminName = 'Admin', adminEmail = '' }) => {

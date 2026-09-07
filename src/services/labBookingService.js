@@ -120,8 +120,28 @@ const PHASE2_FIELDS =
   'patient_id, bill_no, billed_at, subtotal_amount, discount, discount_type, ' +
   'discount_reason, tax_amount, amount_due';
 
-/** Flipped once, the first time the database says those columns are not there. */
-let phase2 = true;
+/**
+ * Whether phase2.sql has been run. Null until we have asked.
+ *
+ * Asked once, with a query that costs nothing, rather than by letting a real
+ * query fail: a screen full of red console errors on every first page load is
+ * indistinguishable from something actually being broken, and a lab that has
+ * not run the migration yet still deserves a working bookings list.
+ */
+let phase2 = null;
+let probe = null;
+
+function detectSchema() {
+  if (phase2 !== null) return Promise.resolve(phase2);
+  probe ||= supabase
+    .from('booked_tests')
+    .select('patient_id')
+    .limit(1)
+    .then(({ error }) => { phase2 = !error; return phase2; })
+    .catch(() => { phase2 = false; return false; });
+  return probe;
+}
+
 const FIELD_LIST = () => (phase2 ? `${CORE_FIELDS}, ${PHASE2_FIELDS}` : CORE_FIELDS);
 
 const isMissingColumn = (err) => {
@@ -134,10 +154,13 @@ const isMissingColumn = (err) => {
 };
 
 /**
- * Run a query, and if the billing columns are what it choked on, drop them and
- * run it once more. One retry, never a loop.
+ * Run a query against whichever column set this database actually has.
+ *
+ * The retry is belt and braces for the case where the migration lands midway
+ * through a session: one retry, never a loop.
  */
 async function withFields(run) {
+  await detectSchema();
   const first = await run(FIELD_LIST());
   if (!first.error) return first;
   if (phase2 && isMissingColumn(first.error)) {
@@ -176,6 +199,7 @@ export const labBookingService = {
     // Billing and the patient link only exist after phase2.sql. Sending them
     // to a database that has not run it would fail the whole insert, so they
     // are added only when the columns are known to be there.
+    await detectSchema();
     if (phase2) {
       Object.assign(row, {
         patient_id: payload.patientId || null,
@@ -223,16 +247,18 @@ export const labBookingService = {
 
   /** Every booking for one lab, optionally filtered by stage or date. */
   async listForLab(labId, { statuses, date, search, limit = 200 } = {}) {
-    let q = supabase
-      .from('booked_tests')
-      .select(FIELD_LIST())
-      .eq('lab_id', labId)
-      .order('scheduled_date', { ascending: false })
-      .order('created_at', { ascending: false })
-      .limit(limit);
-    if (statuses?.length) q = q.in('workflow_status', statuses);
-    if (date) q = q.eq('scheduled_date', date);
-    const { data, error } = await q;
+    const { data, error } = await withFields((f) => {
+      let q = supabase
+        .from('booked_tests')
+        .select(f)
+        .eq('lab_id', labId)
+        .order('scheduled_date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (statuses?.length) q = q.in('workflow_status', statuses);
+      if (date) q = q.eq('scheduled_date', date);
+      return q;
+    });
     if (error) throw error;
     let rows = data || [];
     if (search) {
@@ -249,34 +275,37 @@ export const labBookingService = {
 
   /** Admin: every booking scheduled for `date` across every lab, plus lab names. */
   async listAllForDate(date) {
-    const { data, error } = await supabase
-      .from('booked_tests')
-      .select(`${FIELD_LIST()}, labs:lab_id ( id, name, lab_ref, city )`)
-      .eq('scheduled_date', date)
-      .order('scheduled_time', { ascending: true });
+    const { data, error } = await withFields((f) =>
+      supabase
+        .from('booked_tests')
+        .select(`${f}, labs:lab_id ( id, name, lab_ref, city )`)
+        .eq('scheduled_date', date)
+        .order('scheduled_time', { ascending: true }));
     if (error) throw error;
     return data || [];
   },
 
   /** One booking with its lab and report, for a details drawer. */
   async get(id) {
-    const { data, error } = await supabase
-      .from('booked_tests')
-      .select(`${FIELD_LIST()}, labs:lab_id ( id, name, lab_ref )`)
-      .eq('id', id)
-      .maybeSingle();
+    const { data, error } = await withFields((f) =>
+      supabase
+        .from('booked_tests')
+        .select(`${f}, labs:lab_id ( id, name, lab_ref )`)
+        .eq('id', id)
+        .maybeSingle());
     if (error) throw error;
     return data;
   },
 
   /** Generic patch — the stage guards live in the database trigger. */
   async update(id, patch) {
-    const { data, error } = await supabase
-      .from('booked_tests')
-      .update({ ...patch, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select(FIELD_LIST())
-      .single();
+    const { data, error } = await withFields((f) =>
+      supabase
+        .from('booked_tests')
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select(f)
+        .single());
     if (error) throw error;
     return data;
   },

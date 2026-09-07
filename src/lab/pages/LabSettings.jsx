@@ -4,6 +4,7 @@ import useAuth from '../../hooks/useAuth.js';
 import useDocumentTitle from '../../hooks/useDocumentTitle.js';
 import LabForm from '../../components/lab/LabForm.jsx';
 import LabDocuments from '../components/LabDocuments.jsx';
+import ReportSettings from '../components/ReportSettings.jsx';
 import { labService } from '../../services/labService.js';
 import { Page, PageHeader, Card, Alert } from '../components/ui.jsx';
 
@@ -74,6 +75,10 @@ export default function LabSettings() {
               submitLabel="Save changes"
             />
           </Card>
+
+          <div className="mt-6">
+            <ReportSettings />
+          </div>
 
           <div className="mt-6">
             <LabDocuments />

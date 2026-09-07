@@ -278,15 +278,10 @@ export default function LabAccounts() {
 
           {tab === 'collection' && (
             <TableFrame
-              head={
-                <tr>
-                  <th className="px-4 py-3 text-left">When</th>
-                  <th className="px-4 py-3 text-left">Patient</th>
-                  <th className="px-4 py-3 text-left">Bill</th>
-                  <th className="px-4 py-3 text-left">Method</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                </tr>
-              }
+              head={[
+                'When', 'Patient', 'Bill', 'Method',
+                { label: 'Amount', align: 'right' },
+              ]}
               empty={data.payments.length === 0}
               emptyIcon="💰"
               emptyText="No payments taken in this period."
@@ -311,16 +306,11 @@ export default function LabAccounts() {
 
           {tab === 'expenses' && (
             <TableFrame
-              head={
-                <tr>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-left">Category</th>
-                  <th className="px-4 py-3 text-left">Description</th>
-                  <th className="px-4 py-3 text-left">Paid to</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              }
+              head={[
+                'Date', 'Category', 'Description', 'Paid to',
+                { label: 'Amount', align: 'right' },
+                { label: 'Actions', align: 'right' },
+              ]}
               empty={data.expenses.length === 0}
               emptyIcon="🧾"
               emptyText="No expenses recorded in this period."
@@ -358,16 +348,12 @@ export default function LabAccounts() {
 
           {tab === 'outstanding' && (
             <TableFrame
-              head={
-                <tr>
-                  <th className="px-4 py-3 text-left">Bill</th>
-                  <th className="px-4 py-3 text-left">Patient</th>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-right">Billed</th>
-                  <th className="px-4 py-3 text-right">Paid</th>
-                  <th className="px-4 py-3 text-right">Due</th>
-                </tr>
-              }
+              head={[
+                'Bill', 'Patient', 'Date',
+                { label: 'Billed', align: 'right' },
+                { label: 'Paid', align: 'right' },
+                { label: 'Due', align: 'right' },
+              ]}
               empty={data.owed.length === 0}
               emptyIcon="✅"
               emptyText="Every bill is settled."

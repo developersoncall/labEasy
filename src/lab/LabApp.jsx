@@ -5,6 +5,7 @@ import LabDashboard from './pages/LabDashboard.jsx';
 import LabToday from './pages/LabToday.jsx';
 import LabBookings from './pages/LabBookings.jsx';
 import LabPatients from './pages/LabPatients.jsx';
+import LabBilling from './pages/LabBilling.jsx';
 import LabAccounts from './pages/LabAccounts.jsx';
 import LabTesting from './pages/LabTesting.jsx';
 import LabReports from './pages/LabReports.jsx';
@@ -48,6 +49,7 @@ export default function LabApp() {
         <Route path="today" element={<SectionRoute section="today"><LabToday /></SectionRoute>} />
         <Route path="bookings" element={<SectionRoute section="bookings"><LabBookings /></SectionRoute>} />
         <Route path="patients" element={<SectionRoute section="patients"><LabPatients /></SectionRoute>} />
+        <Route path="billing" element={<SectionRoute section="billing"><LabBilling /></SectionRoute>} />
         <Route path="testing" element={<SectionRoute section="testing"><LabTesting /></SectionRoute>} />
         <Route path="reports" element={<SectionRoute section="reports"><LabReports /></SectionRoute>} />
         <Route path="tests" element={<SectionRoute section="tests"><LabTests /></SectionRoute>} />

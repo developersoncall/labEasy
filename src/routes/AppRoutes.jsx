@@ -20,6 +20,7 @@ const LabApp = lazy(() => import('../lab/LabApp.jsx'));
 // Platform (lab-first) public page
 const PlatformHome = lazy(() => import('../pages/public/PlatformHome.jsx'));
 const SupportEnquiry = lazy(() => import('../pages/public/SupportEnquiry.jsx'));
+const VerifyReport = lazy(() => import('../pages/public/VerifyReport.jsx'));
 
 // Patient portal — kept intact, served only when public_portal_enabled is on
 const Home = lazy(() => import('../pages/public/Home.jsx'));
@@ -85,6 +86,9 @@ export default function AppRoutes() {
           {!publicPortalEnabled && <Route path="/" element={<PlatformHome />} />}
           {/* Pre-registration enquiries work whether or not the portal is on. */}
           <Route path="/support" element={<SupportEnquiry />} />
+          {/* The QR on a printed report. Signed out on purpose — the doctor
+              holding the paper is not a user of this platform. */}
+          <Route path="/verify/:token" element={<VerifyReport />} />
 
           {/* -------- patient portal (gated) -------- */}
           <Route element={<MainLayout />}>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FaFlask, FaInfoCircle, FaArrowRight, FaArrowLeft, FaCheckCircle,
-  FaFilePdf, FaDownload, FaPen, FaCalculator,
+  FaFilePdf, FaDownload, FaPen, FaCalculator, FaPaperPlane,
 } from 'react-icons/fa';
 import Modal from '../../components/common/Modal.jsx';
 import useAuth from '../../hooks/useAuth.js';
@@ -15,6 +15,9 @@ import { buildReportPdf, groupRows } from '../report/reportPdf.js';
 import { resolveParameters, evaluateFormula } from '../report/ranges.js';
 import { ROLES } from '../../config/platform.js';
 import { labStaffService } from '../../services/labStaffService.js';
+import { labAssetService } from '../../services/labAssetService.js';
+import { deliveryService, verifyUrl } from '../../services/deliveryService.js';
+import ShareReportModal from './ShareReportModal.jsx';
 import { Alert } from './ui.jsx';
 
 /**
@@ -65,6 +68,7 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
   const [error, setError] = useState('');
   const [schemaMissing, setSchemaMissing] = useState(false);
   const [saved, setSaved] = useState(null); // { report, blobUrl }
+  const [shareOpen, setShareOpen] = useState(false);
   // The report is signed by the laboratory, so the signatory is its Lab Admin
   // whoever happens to be entering the values.
   const [approvedBy, setApprovedBy] = useState('');
@@ -146,6 +150,12 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
   useEffect(() => {
     let alive = true;
     if (!labId) return undefined;
+    // A lab that has named its signatory in Report settings has said who signs;
+    // otherwise fall back to whoever holds the Lab Admin account.
+    if (lab?.signatory_name) {
+      setApprovedBy(lab.signatory_name);
+      return () => { alive = false; };
+    }
     labStaffService
       .listByRole(labId, ROLES.LAB_ADMIN)
       .then((admins) => {
@@ -154,7 +164,7 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
       })
       .catch(() => {});
     return () => { alive = false; };
-  }, [labId]);
+  }, [labId, lab?.signatory_name]);
 
   const bookingId = booking?.id;
   useEffect(() => {
@@ -212,14 +222,19 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
         }`,
       });
 
+      // The QR on the printed copy points at this report's own token.
+      const saved0 = await labReportService.get(reportId).catch(() => null);
+      const token = saved0?.public_token || null;
+
       const blob = await buildReportPdf({
-        lab,
+        lab: labAssetService.withAssets(lab),
         booking,
         rows,
         preparedBy,
         approvedBy: approvedBy || lab?.name,
         notes,
         comments: standingComments,
+        verifyLink: token ? verifyUrl(token) : null,
       });
       const file = new File([blob], `${booking.booking_ref || 'report'}.pdf`, {
         type: 'application/pdf',
@@ -245,6 +260,20 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
       } else if (role !== ROLES.TESTER && s !== 'completed') {
         await labBookingService.update(booking.id, { workflow_status: 'report_uploaded' });
       }
+
+      // Generating the document is itself a delivery event — it is what the
+      // counter hands over — so the log starts here rather than at the first
+      // WhatsApp message.
+      await deliveryService
+        .log({
+          reportId,
+          bookingId: booking.id,
+          labId,
+          channel: 'print',
+          note: 'Report generated',
+          sentBy: user?.id,
+        })
+        .catch(() => {});
 
       setSaved({ report, blobUrl: URL.createObjectURL(blob) });
       setStep('done');
@@ -578,10 +607,27 @@ export default function ReportBuilder({ booking, onClose, onSaved }) {
               </button>
             </div>
 
+            <button
+              type="button"
+              className="btn-soft w-full"
+              onClick={() => setShareOpen(true)}
+              disabled={!saved?.report}
+            >
+              <FaPaperPlane aria-hidden="true" /> Send it to the patient
+            </button>
+
             <button type="button" className="btn-primary w-full" onClick={onClose}>Done</button>
           </>
         )}
       </div>
+
+      {shareOpen && saved?.report && (
+        <ShareReportModal
+          booking={booking}
+          report={saved.report}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </Modal>
   );
 }

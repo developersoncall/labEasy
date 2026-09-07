@@ -38,6 +38,9 @@ export const LAB_SECTION_ACCESS = {
   // The register is reception's tool, and the report desk needs it to check
   // what a patient was tested for last time.
   patients: [ROLES.LAB_ADMIN, ROLES.RECEPTIONIST, ROLES.REPORTIST],
+  // Bills and the money against them. Reception takes payment, so reception
+  // needs this; what a bill *earned* is a different screen (accounts).
+  billing: [ROLES.LAB_ADMIN, ROLES.RECEPTIONIST],
   testing: [ROLES.LAB_ADMIN, ROLES.TESTER],
   reports: [ROLES.LAB_ADMIN, ROLES.REPORTIST],
   tests: [ROLES.LAB_ADMIN],

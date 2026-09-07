@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FaFlask, FaTachometerAlt, FaCalendarDay, FaClipboardList, FaVials, FaFileMedical,
   FaUsers, FaCog, FaLifeRing, FaSignOutAlt, FaBars, FaTimes, FaFlask as FaVialsIcon,
-  FaUserInjured, FaFileInvoiceDollar,
+  FaUserInjured, FaFileInvoiceDollar, FaReceipt,
 } from 'react-icons/fa';
 import useAuth from '../../hooks/useAuth.js';
 import { useSettings } from '../../context/SettingsContext.jsx';
@@ -27,6 +27,7 @@ const NAV = [
       { to: '/lab/today', section: 'today', icon: <FaCalendarDay />, label: 'Today' },
       { to: '/lab/bookings', section: 'bookings', icon: <FaClipboardList />, label: 'Bookings' },
       { to: '/lab/patients', section: 'patients', icon: <FaUserInjured />, label: 'Patients' },
+      { to: '/lab/billing', section: 'billing', icon: <FaReceipt />, label: 'Billing' },
       { to: '/lab/testing', section: 'testing', icon: <FaVials />, label: 'Testing' },
       { to: '/lab/reports', section: 'reports', icon: <FaFileMedical />, label: 'Reports' },
     ],

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  FaPlus, FaTrash, FaPrint, FaUndoAlt, FaCheckCircle, FaPercent, FaRupeeSign,
+  FaPlus, FaTrash, FaPrint, FaUndoAlt, FaCheckCircle, FaPercent, FaRupeeSign, FaQrcode,
 } from 'react-icons/fa';
 import Modal from '../../components/common/Modal.jsx';
 import useAuth from '../../hooks/useAuth.js';
@@ -10,6 +10,9 @@ import {
   billingService, billTotals, dueOf, PAYMENT_METHODS, methodLabel,
 } from '../../services/billingService.js';
 import { buildReceiptPdf } from '../report/receiptPdf.js';
+import {
+  paymentAccountService, accountDetail, kindLabel,
+} from '../../services/paymentAccountService.js';
 import { ROLES } from '../../config/platform.js';
 import { formatCurrency } from '../../utils/helpers.js';
 import { Alert } from './ui.jsx';
@@ -39,6 +42,11 @@ export default function PaymentModal({ booking, onClose, onSave }) {
   const [reference, setReference] = useState('');
   const [isRefund, setIsRefund] = useState(false);
 
+  // Where the patient actually sends the money. The lab's own options win;
+  // the platform's are the fallback for a lab that has not set any up.
+  const [accounts, setAccounts] = useState([]);
+  const [accountId, setAccountId] = useState('');
+
   const [editDiscount, setEditDiscount] = useState(false);
   const [discount, setDiscount] = useState('');
   const [discountType, setDiscountType] = useState('amount');
@@ -64,11 +72,27 @@ export default function PaymentModal({ booking, onClose, onSave }) {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
+    let alive = true;
+    if (!labId) return undefined;
+    paymentAccountService
+      .list({ labId, includePlatform: true, activeOnly: true })
+      .then(({ accounts: rows }) => {
+        if (!alive) return;
+        // A lab that has configured its own never sees the platform's.
+        const own = rows.filter((a) => a.lab_id === labId);
+        setAccounts(own.length ? own : rows);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [labId]);
+
+  useEffect(() => {
     if (!booking) return;
     setAmount(dueOf(booking) > 0 ? String(dueOf(booking)) : '');
     setMethod(booking.payment_method || 'cash');
     setReference('');
     setIsRefund(false);
+    setAccountId('');
     setDiscount(String(booking.discount ?? ''));
     setDiscountType(booking.discount_type || 'amount');
     setDiscountReason(booking.discount_reason || '');
@@ -93,6 +117,7 @@ export default function PaymentModal({ booking, onClose, onSave }) {
         reference,
         isRefund,
         receivedBy: user?.id,
+        paymentAccountId: cashless && accountId ? accountId : null,
       });
       setAmount('');
       setReference('');
@@ -139,6 +164,14 @@ export default function PaymentModal({ booking, onClose, onSave }) {
       setBusy(false);
     }
   };
+
+  // Cash needs no destination; everything else does.
+  const cashless = !isRefund && !['cash', 'other'].includes(method);
+  const chosen =
+    accounts.find((a) => a.id === accountId)
+    || accounts.find((a) => a.is_default)
+    || accounts[0]
+    || null;
 
   const preview = billTotals({
     subtotal: booking.subtotal_amount ?? booking.total_amount,
@@ -378,6 +411,53 @@ export default function PaymentModal({ booking, onClose, onSave }) {
                 />
               </div>
             </div>
+
+            {/* Where to send it — only when there is somewhere to send it to. */}
+            {cashless && accounts.length > 0 && (
+              <div className="rounded-xl border border-primary-100 bg-primary-50/50 p-3">
+                <div className="flex flex-wrap items-start gap-3">
+                  {chosen?.qr_path && (
+                    <img
+                      src={paymentAccountService.qrUrl(chosen.qr_path)}
+                      alt={`Scan-to-pay code for ${chosen.label || kindLabel(chosen.kind)}`}
+                      className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain p-1"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-700">
+                      <FaQrcode aria-hidden="true" /> Show the patient
+                    </p>
+                    {accounts.length > 1 ? (
+                      <select
+                        className="input-field mt-1.5 h-9 py-1 text-sm"
+                        value={chosen?.id || ''}
+                        onChange={(e) => setAccountId(e.target.value)}
+                        aria-label="Payment destination"
+                      >
+                        {accounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.label || kindLabel(a.kind)}
+                            {a.is_default ? ' (default)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="mt-0.5 text-sm font-medium text-gray-900">
+                        {chosen?.label || kindLabel(chosen?.kind)}
+                      </p>
+                    )}
+                    {accountDetail(chosen) && (
+                      <p className="mt-1 select-all font-mono text-sm text-gray-800">
+                        {accountDetail(chosen)}
+                      </p>
+                    )}
+                    {chosen?.instructions && (
+                      <p className="mt-1 text-xs text-gray-500">{chosen.instructions}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <label className="flex items-center gap-2 text-sm text-gray-600">
